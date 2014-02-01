@@ -1,0 +1,13 @@
+---
+layout: post
+title:  新年快乐！
+categories: null
+---
+
+没有博客内容，所有写一篇占位
+
+本站地址 [zp][zp]
+本站 [GitHub repo][zp-gh]
+
+[zp]: http://zp.rensidiaochaotian.com/
+[zp-gh]: https://github.com/zp25/zp25.github.io
