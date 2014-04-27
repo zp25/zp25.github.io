@@ -1,0 +1,54 @@
+---
+layout: post
+title:  开机过程和名词解释I - BIOS 和 UEFI
+categories: 计算机原理
+---
+
+# BIOS
+*BIOS(Basic Input/Output System)在[IBM PC兼容机][ibm-pc](标准PC)上，是一种业界标准的固件接口，是个人电脑启动时加载的第一个软件。1975年在[CP/M][cpm]([DRI][dr])中第一次出现名词BIOS。*
+
+BIOS存储在特定的EEPROM或闪存中，系统过电或被重置(reset)时，处理器第一条指令的地址会被定位到BIOS的存储器中。BIOS从存储器中解压到主存，让初始化程序开始运行，包括执行系统各部分的的自检(Power-On Self-Test, POST)，启动引导程序或装载操作系统。接下去BIOS将控制权交给下一阶段程序，判断依据为用户参数(存储于CMOS)的启动顺序(Boot Sequence)，如从硬盘启动。
+
+BIOS利用挂载真实模式中断的方式增加硬件功能，必须将一段类似驱动的16位代码存于固定的存储区，运行这段代码，它将挂载实模式下约定的中断矢量向其他程序提供服务。驱动代码受存储区限制。
+
+*BIOS技术发展缓慢，自从出现以来就以16位汇编代码，寄存器参数调用方式，静态链接，以及1MB以下内存固定编址的形式存在了十几年。虽然功能也有增强，但在BIOS中添加几个简单的USB设备支持都曾使很多BIOS设计师痛苦万分。有问题，于是UEFI出现了。*
+
+# UEFI
+*UEFI(Unified Extensible Firmware Interface, 统一可扩展固件接口)最初由英特尔开发，名为EFI，用来定义操作系统和固件之间的软件界面，为替代BIOS的升级方案。2005年英特尔将此规范格式交由[UEFI论坛][uefi-forum]推广与发展，之后改名为UEFI。*
+
+EFI在概念上非常类似一个低阶操作系统，包括操作界面优化和鼠标代替键盘作为输入。**重要的**，启动时，会加载硬件在EFI中的驱动程序。这些驱动用EFI Byte Code编写。这种虚拟机器语言并不由CPU直接执行，需在EFI驱动运行环境(Driver Execution Environment, DXE)下被解释运行。硬件被保护起来，操作系统则摆脱驱动，通过API操作硬件，保证了充分的向下兼容性。EFI对硬件有完全的控制权，不需要进入操作系统，只需进入EFI操作界面便可安装和更新硬件驱动。
+
+EFI需要远大于BIOS的存储空间，在磁盘中以小型分区形式存在(fat32，通常大于100M，200M较合适，boot flag)。EFI是用模块化，C语言风格的参数堆栈传递方式，动态链接的形式构建的系统。突破16位寻址而适用于现在的处理器模式。高级语言的运用简化开发，方便硬件厂商参与。
+
+EFI一般由以下部分组成
+
++ Pre-EFI初始化模块
++ DXE - Pre-EFI和DXE通常被集成在一个只读存储器中
++ EFI驱动程序
++ 兼容性支持模块(CSM)
++ EFI高层应用 - 硬件厂商开发的基于固件的高级应用
++ GUID磁盘分区表
+
+EFI负责加电自检(POST)、连系操作系统以及提供连接操作系统与硬件的接口。系统开机时，最先执行Pre-EFI初始化模块，负责CPU、主桥和存储器初始化。之后载入DXE，此时具有枚举并加载其他EFI驱动的能力。在PCI架构的系统中，各PCI桥及PCI适配器的EFI驱动先被加载并初始化，然后枚举并加载这些桥和适配器后面的各种总线和适配器。EFI驱动可放置在系统任何位置，只要可以按顺序枚举即可。部分EFI驱动也可放置在EFI专用分区中(非此磁盘加载所需驱动)。CMS是x86平台EFI系统的一个特殊模块，为不具备EFI引导能力的操作系统提供类似传统BIOS的服务(UEFI Boot || Legacy Boot)。
+
+安全问题，虽然较BIOS危险，但也更容易恢复，如系统引导依赖的EFI驱动并不存放在EFI的GUID分区中，保证部分驱动损坏后依然可以通过引导Live CD启动等方式修复。另EFI引入Secure Boot概念，可在设置页面UEFI Boot选项下打开或关闭。其目的是防止恶意软件侵入，做法是采用密钥。主板出厂时内置一些可靠公钥，自己也可导入。任何要在此主板上加载的操作系统和驱动必须有对应私钥。不过此设置也存在争议，如Windows8认证机器只有[OEM][oem]和微软公钥且默认开启Secure Boot而限制通用的Linux开机，虽然关闭Secure Boot即可实现，但这样将使正版Windows无法使用。安装Windows的移动设备则不提供关闭Secure Boot的选项。这受到[自由软件基金会(FSF)][fsf]的反对。
+
+*EFI引入突破传MBR结构限制的GUID磁盘分区系统(GPT)。*
+
+# 参看
++ [BIOS-维基百科](http://zh.wikipedia.org/wiki/BIOS "BIOS")
++ [BIOS-百度百科](http://baike.baidu.com/view/361.htm "bios")
++ [UEFI-维基百科](http://zh.wikipedia.org/wiki/%E7%BB%9F%E4%B8%80%E5%8F%AF%E6%89%A9%E5%B1%95%E5%9B%BA%E4%BB%B6%E6%8E%A5%E5%8F%A3 "统一可扩展固件接口")
++ [Windows7将舍弃BIOS的奥秘：EFI接口详解](http://os.51cto.com/art/200810/94530.htm "Windows7将舍弃BIOS的奥秘：EFI接口详解")
++ [ACPI-维基百科](http://zh.wikipedia.org/wiki/ACPI "高级配置与电源接口")
++ [反Secure Boot垄断：兼谈如何在Windows 8电脑上安装Linux](http://www.ruanyifeng.com/blog/2013/01/secure_boot.html "反Secure Boot垄断：兼谈如何在Windows 8电脑上安装Linux")
++ [计算机是如何启动的？](http://www.ruanyifeng.com/blog/2013/02/booting.html "计算机是如何启动的？")
++ [Linux 的启动流程](http://www.ruanyifeng.com/blog/2013/08/linux_boot_process.html "Linux 的启动流程")
+
+
+[ibm-pc]: http://zh.wikipedia.org/wiki/IBM_PC%E5%85%BC%E5%AE%B9%E6%9C%BA "IBM PC兼容机"
+[cpm]: http://zh.wikipedia.org/wiki/CP/M "CP/M操作系统"
+[dr]: http://zh.wikipedia.org/wiki/%E6%95%B8%E4%BD%8D%E7%A0%94%E7%A9%B6%E5%85%AC%E5%8F%B8 "数字研究公司"
+[uefi-forum]: http://www.uefi.org/ "Unified Extensible Firmware Interface Forum"
+[oem]: http://zh.wikipedia.org/wiki/OEM "贴牌生产"
+[fsf]: http://www.fsf.org/campaigns/ "Free Software Foundation - Current campaigns"

@@ -1,0 +1,23 @@
+---
+layout: post
+title:  开机过程和名词解释II - MBR 和 GPT
+categories: 计算机原理
+published: false
+---
+
+# MBR
+**
+
+
+
+**
+
+# GPT
+**
+
+
+
+** 
+
+# 参看
++ [MBR-维基百科](http://zh.wikipedia.org/wiki/%E4%B8%BB%E5%BC%95%E5%AF%BC%E8%AE%B0%E5%BD%95 "主引导记录")
