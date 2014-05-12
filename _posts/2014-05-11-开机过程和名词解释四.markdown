@@ -1,0 +1,36 @@
+---
+layout: post
+title:  开机过程和名词解释IV - 操作系统
+categories: 计算机原理
+---
+
+# 操作系统阶段
+*之前记录的可认为是Linux启动的第一个概念阶段，其性能提升主要来自硬件升级；在内核加载和操作系统获取到控制权之后，启动进入第二个概念阶段，此时性能提升几乎完全是软件的性能提升。*
+
+## vmlinuz
+在linux系统中，vmlinux(vmlinuz)是一个包含linux kernel的链接文件。内核压缩文件位于/boot，类似/boot/vmlinux-3.13.0-24-generic。我在/root下找到了vmlinux文件。
+
+GRUB将内核压缩文件载入内存，通常为zImage或bzImage。在这个内核映像前面是一个例程，它实现少量硬件设置，并对内核映像中包含的内核进行解压。然后该例程会调用内核，并开始启动内核引导的过程。
+
+## initrd
+与内核一同被GRUB加载如内存的还有initrd。Initrd RAM disk或者initrd是指一个临时文件系统，它在启动阶段被Linux内核调用。initrd主要用于根文件系统被挂载之前，进行准备工作。Linux2.6内核的initrd的文件格式由原来的文件系统镜像文件转变成了[cpio][cpio]格式，文件位于/boot，在/root下找到链接文件initrd.img。
+
+Linux可以动态载入核心模块，如设备驱动等，精简内核同时提高灵活，存储在/lib/modules中。文件系统可以存储在包括IDE、SCSI、USB在内的多种介质中。若要挂载存储设备中的文件系统，则先要访问此存储设备，获取存储在文件系统中的设备驱动以便驱动此存储设备提供访问可能，非常矛盾的关系。此时initrd便出现以解决此问题。
+
+内核在访问真正的文件系统前先访问initrd文件系统。相较于Linux2.4内核文件系统镜像，cpio格式的initrd在处理流程上简化了不少。GRUB将initrd释放到rootfs(基于内存的文件系统，因此不需要任何驱动)，然后执行initrd中的/init文件，执行到这一点，内核的工作全部结束，完全交给/init文件处理。之前版本在挂载initrd后执行/linuxrc加载访问根文件系统必须的驱动，卸载initrd后加载根文件系统，并执行/sbin/init。
+
+## init
+当内核被引导并进行初始化之后，内核就可以启动自己的第一个用户空间应用程序了。这是第一个调用的使用标准C库编译的程序。在此之前，还没有执行任何标准的C应用程序。init(initialization)是Unix和类Unix系统中用来产生其它所有进程的程序。它以守护进程的方式存在，其进程号为1。Ubuntu和其它一些发行版现在开始采用[Upstart][upstart]来代替传统的init进程，随着Debian Jessie默认使用[systemd][systemd]作为init系统，Ubuntu也确定将采用systemd。
+
+# 参看
++ [vmlinux-维基百科](http://zh.wikipedia.org/wiki/Vmlinux "vmlinux")
++ [initrd-维基百科](http://zh.wikipedia.org/wiki/Initrd "initrd")
++ [Linux2.6 内核的 Initrd 机制解析](http://www.ibm.com/developerworks/cn/linux/l-k26initrd/ "Linux2.6 内核的 Initrd 机制解析")
++ [init-维基百科](http://zh.wikipedia.org/wiki/Init "init")
++ [Linux 的启动流程](http://www.ruanyifeng.com/blog/2013/08/linux_boot_process.html "Linux 的启动流程")
++ [定制和监视 Linux 系统启动](http://www.ibm.com/developerworks/cn/linux/l-customize-monitor-linux/index.html?ca=drs- "定制和监视 Linux 系统启动")
++ [開機流程、模組管理與 Loader-鳥哥的 Linux 私房菜](http://linux.vbird.org/linux_basic/0510osloader.php#startup_intro "開機流程、模組管理與 Loader")
+
+[cpio]: http://zh.wikipedia.org/wiki/Cpio "Cpio"
+[upstart]: http://zh.wikipedia.org/wiki/Upstart "Upstart"
+[systemd]: http://zh.wikipedia.org/wiki/Systemd "systemd"

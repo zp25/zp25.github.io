@@ -43,7 +43,7 @@ EFI负责加电自检(POST)、连系操作系统以及提供连接操作系统�
 + [ACPI-维基百科](http://zh.wikipedia.org/wiki/ACPI "高级配置与电源接口")
 + [反Secure Boot垄断：兼谈如何在Windows 8电脑上安装Linux](http://www.ruanyifeng.com/blog/2013/01/secure_boot.html "反Secure Boot垄断：兼谈如何在Windows 8电脑上安装Linux")
 + [计算机是如何启动的？](http://www.ruanyifeng.com/blog/2013/02/booting.html "计算机是如何启动的？")
-+ [Linux 的启动流程](http://www.ruanyifeng.com/blog/2013/08/linux_boot_process.html "Linux 的启动流程")
++ [Linux 引导过程内幕](http://www.ibm.com/developerworks/cn/linux/l-linuxboot/ "Linux 引导过程内幕")
 
 
 [ibm-pc]: http://zh.wikipedia.org/wiki/IBM_PC%E5%85%BC%E5%AE%B9%E6%9C%BA "IBM PC兼容机"
