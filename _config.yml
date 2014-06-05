@@ -1,3 +1,5 @@
 name: ZP
+description: ZP's blog
+url: http://zp.rensidiaochaotian.com/
 markdown: redcarpet
 pygments: true
