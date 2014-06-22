@@ -1,0 +1,67 @@
+---
+layout: post
+title: 非对称加密算法RSA和应用II - HTTPS 和 OPENVPN
+categories: 安全
+published: false
+---
+
+# HTTPS
+超文本传输安全协议是超文本传输协议和TLS/SSL的组合，用以提供加密通讯及对网络服务器身份的鉴定。HTTPS报文中的任何东西都被加密，包括所有报头和荷载，因此通常一个攻击者所能知道的只有在两者之间有一连接。
+
+HTTP和安全协议(TLS/SSL)都属于应用层。安全协议运行于HTTP之下，传输层之上，为HTTP提供一个类似于TCP的套接字。安全协议接收HTTP报文后将其加密，然后将加密结果交给传输层套接字；或从传输层套接字接收报文，解密后交给上层的HTTP。
+
+HTTPS通过数字证书进行身份认证，数字证书需向颁发机构获取。浏览器需预先安装信任的证书颁发机构，也可手动导入(如goagent需导入才可以顺畅使用)，用于验证数字证书是否有效。一个到某网站的HTTPS连接可被信任，当且仅当：
+
++ 用户相信互联网上相关的节点是值得信任的，或者本协议的加密层(TLS/SSL)不能被窃听者破坏
++ 用户相信证书颁发机构仅信任合法的网站
++ 用户相信他们的浏览器正确实现了HTTPS且安装了正确的证书颁发机构
++ 被访问的网站提供了一个有效的证书，即证书由一个被信任的证书颁发机构签发
++ 该证书正确地验证了被访问的网站
+
+在这些信任之下，我可以认为网上交易对于我的金融账户是安全的。虽然看了这些觉得非常不安，但理论和事实同时证明目前这些信任还是没有问题的，我可以放心使用HTTPS。
+
+*给自己的网站添加https功能将在之后尝试，可能有利于更多的对https的理解*
+
+# OpenVPN
+虚拟专用网(Virtual Private Network)是一种常用于连接中、大型企业或团体与团体间的私人网络的通讯方法。VPN可以实现通过不安全的网络架构(如因特网)，利用身份认证、加密等技术安全可靠的传输信息。
+
+常用的VPN协议如L2TP、PPTP、IPSec等，这些名词都可以在手机、电脑的VPN设置页面看到，具体是
+
+## PPTP
+点对点隧道协议(PPTP)是由微软、3Com等公司开发的虚拟隧道协议。PPTP使用TCP创建控制通道来发送控制命令，以及利用[通用路由封装(GRE)][gre]通道来封装[点对点协议(PPP)][ppp]数据包以发送数据。PPTP本身不提供加密和身份验证功能，需配合微软[点对点加密(MPPE)][mppe]使用。
+
+## L2TP
+第二层隧道协议(Layer Two Tunneling Protocol)是由IETF根据PPTP提出的虚拟隧道协议，2005年L2TPv3由IETF通过RFC 3931发布。L2TP自身也不提供加密与身份验证，通常配合IPSec实现，称为L2TP/IPsec。L2TP是数据链路层协议，实现时不局限于IP网络，同时还支持ATM、帧中继、X.25在内的多种网络。
+
+## IPSec
+互联网安全协定(Internet Protocol Security)是通过对IP协议的分组进行加密和认证来保护IP协议的网络传输协议族。IPSec属于网络层，通过加密封装IP数据包，可用于保护更高层的协议，如TCP、UDP等；而其他加密协议，如SSL位于应用层，则只能加密TCP信息流。但处于更低层则相应的必须处理可靠性和分片的问题，也使复杂性和处理开销较SSL高。
+
+还有，若用于构建VPN(IPSec的主要用途)，由于处于网络层，数据包到达内部网络即解密，因此在内部局域网中是明文传输。而处于应用层的SSL能保证应用间的安全传输。
+
+开源软件[Openswan][openswan]可提供IPsec功能。
+
+## SSLVPN
+对比IPSec和SSL可以看出两者各自的优势，在某些情况下需要构建使用SSL加密的VPN。[OpenVPN][openvpn]是一个用于创建VPN的软件包，大量使用[OpenSSL][openssl]加密库中的SSLv3/TLSv1协议函数库。
+
+OpenVPN的技术核心是虚拟网卡和SSL。虚拟网卡是使用网络底层编程技术实现的一个驱动软件，运行后主机多出现一个网卡，可像其他网卡一样配置，数据包都需通过此虚拟网卡处理。OpenVPN提供了多种身份验证方式，包括预享密钥(仅用于点对点VPN)、第三方证书、用户名密码组合(2.0后提供)。
+
+由于OpenVPN使用通用网络协议(TCP等)，因此可以防止ISP等过滤特定VPN协议，如IPSec。
+
+# 搭建OpenVPN
+整理这些内容实际是希望自建一个VPN，在了解OpenVPN后引出了RSA算法和OpenSSL，于是就先做些准备。
+
+# 参看
++ [HTTPS-维基百科](http://zh.wikipedia.org/wiki/HTTPS "HTTPS")
++ [OpenVPN-维基百科](http://zh.wikipedia.org/wiki/OpenVPN "OpenVPN")
++ [虚拟专用网-维基百科](http://zh.wikipedia.org/wiki/%E8%99%9B%E6%93%AC%E7%A7%81%E4%BA%BA%E7%B6%B2%E8%B7%AF "虚拟专用网")
++ [点对点隧道协议-维基百科](http://zh.wikipedia.org/wiki/%E9%BB%9E%E5%B0%8D%E9%BB%9E%E9%9A%A7%E9%81%93%E5%8D%94%E8%AD%B0 "点对点隧道协议")
++ [第二层隧道协议-维基百科](http://zh.wikipedia.org/wiki/%E7%AC%AC%E4%BA%8C%E5%B1%82%E9%9A%A7%E9%81%93%E5%8D%8F%E8%AE%AE "第二层隧道协议")
++ [IPsec-维基百科](http://zh.wikipedia.org/wiki/IPsec "IPsec")
++ [VPN 隧道协议PPTP、L2TP、IPSec和SSLVPN的区别](https://www.x-berry.com/vpn-tunneling-protocol/ "VPN 隧道协议PPTP、L2TP、IPSec和SSLVPN的区别")
+
+[gre]: http://zh.wikipedia.org/wiki/%E9%80%9A%E7%94%A8%E8%B7%AF%E7%94%B1%E5%B0%81%E8%A3%85 "通用路由封装"
+[ppp]: http://zh.wikipedia.org/wiki/%E7%82%B9%E5%AF%B9%E7%82%B9%E5%8D%8F%E8%AE%AE "点对点协议"
+[mppe]: http://msdn.microsoft.com/zh-cn/library/cc757532(v=ws.10).aspx "Microsoft 点对点加密 (MPPE)"
+[openswan]: https://www.openswan.org/ "Openswan"
+[openvpn]: http://openvpn.net/ "OpenVPN"
+[openssl]: http://www.openssl.org/ "OpenSSL"
