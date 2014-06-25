@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Google now
+title: 开启Google now
 categories: Miscellaneous
 ---
 
