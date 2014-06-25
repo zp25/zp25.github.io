@@ -108,12 +108,13 @@ Ubuntu 14.04，首先安装，OpenVPN2.3开始不捆绑easy-rsa(简化生成证�
     key myservername.key 
     dh dh2048.pem
 
-    # 其他自选配置
+    # 其他自选配置；协议使用udp因为可更好的防止Dos和UDP port flooding攻击
     prot 1194
     proto udp
     comp-lzo
 
-    # 若希望将服务器作为客户端的网关则需去除以下内容的注释，并修改
+    # 若希望将服务器作为客户端的网关(目的很明确嘛)则需去除以下内容的注释
+    # 使用Google Public DNS
     push "redirect-gateway def1 bypass-dhcp"
     push "dhcp-option DNS 8.8.8.8"
     push "dhcp-option DNS 8.8.4.4"
@@ -125,7 +126,7 @@ Ubuntu 14.04，首先安装，OpenVPN2.3开始不捆绑easy-rsa(简化生成证�
     # "HMAC firewall"配置，第二个参数在服务器端为0，客户端为1
     tls-auth ta.key 0
 
-最后一步，非常重要，路由配置
+最后一步，非常重要，路由转发配置(目的很明确嘛)
 
     vim /etc/sysctl.conf
 
@@ -196,7 +197,7 @@ Ubuntu 14.04，首先安装，OpenVPN2.3开始不捆绑easy-rsa(简化生成证�
 配置完成，可开启客户端`service openvpn start`，同样也可以查看虚拟网卡信息`ifconfig tun0`，ping服务器是否在线`ping 10.8.0.1`，也可查看路由信息确定是否连接成功`netstat -rn`
 
 ### ios
-app store下载官方OpenVPN Connect应用，编辑一份client.conf，将其重命名为.ovpn扩展名。将各种证书和密钥以in-line方式写入ovpn文件，具体样例见[此文][iosinline]。想办法将此配置文件移入ios设备，如通过邮件或iTunes同步等。完成后使用OpenVPN打开，跳转到OpenVPN后会看到有发现新配置的信息，右下方点击绿色的加号便可完成导入。连接上服务器，若是通过用户名/密码认证的还需要输入验证信息。
+app store下载官方OpenVPN Connect应用，编辑一份client.conf，将其重命名为.ovpn扩展名。将各种证书和密钥以in-line方式写入ovpn文件，具体样例见[此文][iosinline]。想办法将此配置文件移入ios设备，如通过邮件或iTunes同步等。完成后使用OpenVPN打开，跳转到OpenVPN后会看到有发现新配置的信息，右下方点击绿色的加号便可完成导入。打开服务测试。
 
 ### android
 android操作与ios几乎相同。安装官方OpenVPN Connect应用，制作ovpn文件后存入手机。打开OpenVPN，点击菜单，Import，选择ovpn文件导入。打开服务测试。
@@ -221,7 +222,10 @@ android操作与ios几乎相同。安装官方OpenVPN Connect应用，制作ovpn
     ;cert client1.crt
     ;key client1.key
 
-完成
+客户端连接时需输入用户名/密码。
+
+## 避免被防火墙拦截
+SSL在握手过程中是明文传输的，且看了几篇文章都说OpenVPN报文特征明显。有提到使用静态证书认证的，可以防止交换密钥时由于明显特征被阻拦OpenVPN服务的防火墙识别。还有是可以通过另一种不被拦截的服务通道传输OpenVPN报文，如SSH。
 
 # 参看
 + [OpenVPN-维基百科](http://zh.wikipedia.org/wiki/OpenVPN "OpenVPN")
