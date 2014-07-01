@@ -56,18 +56,18 @@ GnuPG(GNU Privacy Guard, GPG)是一种加密软件，是[PGP(Pretty Good Privacy
 结束后提示是否需修改信息，输入O确认。之后立即会跳出一个对话框要求输入用于保护私钥的密码，称为**通行句**。通行句使用户可以使用与此密钥有关的各项功能。输入结束后系统开始生成密钥，过程中需生成一些随机数，要求做一些随机动作提高系统随机数的自由度，保证每个密钥都不相同。一段时间后，生成密钥过程完成，返回一些信息，如
 
     gpg: ${HOME}/.gnupg/trustdb.gpg: trustdb created
-    gpg: key D8FC66D2 marked as ultimately trusted
+    gpg: key 35D7ED67 marked as ultimately trusted
     public and secret key created and signed.
 
     gpg: checking the trustdb
     gpg: 3 marginal(s) needed, 1 complete(s) needed, PGP trust model
     gpg: depth: 0  valid:   1  signed:   0  trust: 0-, 0q, 0n, 0m, 0f, 1u
-    pub   2048R/D8FC66D2 2014-06-30
-          Key fingerprint = blablabla
-    uid                  Your Name (Tutorial key) <youremail@example.com>
-    sub   2048R/389AA63E 2014-06-30
+    pub   2048R/35D7ED67 2014-06-30
+          Key fingerprint = 62F1 855C 6C03 6D67 0D8F  9FB1 7A2B 8CED 35D7 ED67
+    uid                  Yichen Zhao (First) <zebrap25@gmail.com>
+    sub   2048R/53055D3E 2014-06-30
 
-其中D8FC66D2是公钥签名(uid)的哈希值，可用于替代uid来辨认公钥。为方便使用，添加环境变量`export GPGKEY=D8FC66D2`
+其中35D7ED67是公钥签名(uid)的哈希值，可用于替代uid来辨认公钥。为方便使用，添加环境变量`export GPGKEY=35D7ED67`
 
 ## 生成取消密钥证书
 作废公钥时需使用取消密钥证书。建议在生成密钥同时制作取消密钥证书，并将取消密钥证书安全存放。使用时无需通行句即可作废公钥，方便，但泄漏后任何人都可将你的公钥作废
@@ -110,9 +110,9 @@ GnuPG(GNU Privacy Guard, GPG)是一种加密软件，是[PGP(Pretty Good Privacy
 
     ${HOME}/.gnupg/pubring.gpg
     ---------------------------
-    pub   2048R/D8FC66D2 2014-06-30
-    uid                  Your Name (Tutorial key) <youremail@example.com>
-    sub   2048R/389AA63E 2014-06-30
+    pub   2048R/35D7ED67 2014-06-30
+    uid                  Yichen Zhao (First) <zebrap25@gmail.com>
+    sub   2048R/53055D3E 2014-06-30
 
 其他显示额外内容的命令包括
 
