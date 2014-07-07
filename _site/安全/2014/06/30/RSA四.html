@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <title>非对称加密算法RSA和应用IV - GnuPG</title>
+        <meta name="viewport" content="width=device-width">
+
+        <!-- favicon -->
+        <link rel="shortcut icon" type="image/x-icon" href="/assets/favicon.ico">
+
+        <!-- syntax highlighting CSS -->
+        <link rel="stylesheet" href="/css/syntax.css">
+
+        <!-- Custom CSS -->
+        <link rel="stylesheet" href="/css/main.css">
+
+        <!-- RSS Feed -->
+        <link rel="alternate" type="application/rss+xml" title="RSS" href="feed.xml">
+
+    </head>
+    <body>
+
+        <div class="site">
+          <div class="header">
+            <h1 class="title"><a href="/">ZP</a></h1>
+            <a class="extra" href="/">home</a>
+            <a class="extra" href="/categories.html">categories</a>
+          </div>
+
+          <h2>非对称加密算法RSA和应用IV - GnuPG</h2>
+<p class="meta">30 Jun 2014</p>
+
+<div class="post">
+<p>GnuPG(GNU Privacy Guard, GPG)是一种加密软件，是<a href="http://zh.wikipedia.org/wiki/PGP" title="PGP">PGP(Pretty Good Privacy)</a>满足GPL协议的替代物，用于加密、数字签名及产生非对称密钥。GnuPG依照OpenPGP(IETF)技术标准设计。由于GPG2.0使用的新软件架构不支持某些用途，因此GPG存在两个分支版本1.x与2.0</p>
+
+<h1>准备</h1>
+
+<h2>生成密钥</h2>
+
+<p>生成密钥操作简单，只需按照提示一步步选择</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">gpg --gen-key
+</code></pre></div>
+<p>提示选择密钥种类，其中选项1默认，加密和签名都使用RSA；选项2使用<a href="http://en.wikipedia.org/wiki/Digital_Signature_Algorithm" title="Digital Signature Algorithm">DSA</a>和<a href="http://en.wikipedia.org/wiki/ElGamal_encryption" title="ElGamal encryption">Elgamal</a>；选项3和4仅生成签名</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">Please select what kind of key you want:
+   (1) RSA and RSA (default)
+   (2) DSA and Elgamal
+   (3) DSA (sign only)
+   (4) RSA (sign only)
+Your selection?
+</code></pre></div>
+<p>直接回车选择默认，之后提示选择RSA密钥长度，默认2048位</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">RSA keys may be between 1024 and 4096 bits long.
+What keysize do you want? (2048)
+</code></pre></div>
+<p>之前提到1024位密钥在768位被破解后已受到威胁，而过长密钥需要更长的加解密时间，根据需要选择。直接回车，接着需选择密钥有效期</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">Please specify how long the key should be valid.
+         0 = key does not expire
+      &lt;n&gt;  = key expires in n days
+      &lt;n&gt;w = key expires in n weeks
+      &lt;n&gt;m = key expires in n months
+      &lt;n&gt;y = key expires in n years
+Key is valid for? (0)
+</code></pre></div>
+<p>默认无过期时限，如果无法保证私钥安全，可选择过期时限。输入数字，可跟随w m y设置密钥有效的天数、周、月或年。输入错了？别担心，回车后还有确认的步骤</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">Key expires at 2014年07月05日 星期六 17时01分08秒 CST
+Is this correct? (y/N)
+</code></pre></div>
+<p>直接回车修改有效期，或输入y之后回车确认。接着需填写个人信息，用于辨认密钥所有者(签名)。需输入真实姓名，邮箱地址和注释</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">GnuPG needs to construct a user ID to identify your key.
+
+Real name: Your Name
+Email address: youremail@example.com
+Comment: Tutorial key
+You selected this USER-ID:
+    &quot;Your Name (Tutorial key) &lt;youremail@example.com&gt;&quot;
+
+Change (N)ame, (C)omment, (E)mail or (O)kay/(Q)uit?
+</code></pre></div>
+<p>结束后提示是否需修改信息，输入O确认。之后立即会跳出一个对话框要求输入用于保护私钥的密码，称为<strong>通行句</strong>。通行句使用户可以使用与此密钥有关的各项功能。输入结束后系统开始生成密钥，过程中需生成一些随机数，要求做一些随机动作提高系统随机数的自由度，保证每个密钥都不相同。一段时间后，生成密钥过程完成，返回一些信息，如</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">gpg: ${HOME}/.gnupg/trustdb.gpg: trustdb created
+gpg: key 35D7ED67 marked as ultimately trusted
+public and secret key created and signed.
+
+gpg: checking the trustdb
+gpg: 3 marginal(s) needed, 1 complete(s) needed, PGP trust model
+gpg: depth: 0  valid:   1  signed:   0  trust: 0-, 0q, 0n, 0m, 0f, 1u
+pub   2048R/35D7ED67 2014-06-30
+      Key fingerprint = 62F1 855C 6C03 6D67 0D8F  9FB1 7A2B 8CED 35D7 ED67
+uid                  Yichen Zhao (First) &lt;zebrap25@gmail.com&gt;
+sub   2048R/53055D3E 2014-06-30
+</code></pre></div>
+<p>其中35D7ED67是公钥签名(uid)的哈希值，可用于替代uid来辨认公钥。为方便使用，添加环境变量<code>export GPGKEY=35D7ED67</code></p>
+
+<h2>生成取消密钥证书</h2>
+
+<p>作废公钥时需使用取消密钥证书。建议在生成密钥同时制作取消密钥证书，并将取消密钥证书安全存放。使用时无需通行句即可作废公钥，方便，但泄漏后任何人都可将你的公钥作废</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">gpg --output revoke.txt --gen-revoke $GPGKEY
+</code></pre></div>
+<p>要使用以上命令，必须已存在公钥。整个过程也有向导，需选择取消公钥原因和输入可选的其他描述内容。之后会要求输入密钥的通行句，完成验证后便会导出证书到revoke.txt。使用时导入revoke.txt并重新上传公钥至公钥服务器(导入公钥和上传公钥见下文)</p>
+
+<h2>导出密钥</h2>
+
+<p>公钥使用二进制文件保存(~/.gunpg/pubring.gpg)，可转换为ASCII导出，可用于上传至公钥服务器</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">gpg --armor --output ~/mykey.txt --export $GPGKEY
+</code></pre></div>
+<p>也可输出私钥，使用<code>--export-secret-keys</code></p>
+
+<h2>上传公钥</h2>
+
+<p>公钥服务器专门存储用户公钥，且会相互同步，尽可能使用户公钥出现在所有公钥服务器上。可将自己的公钥上传至某个公钥服务器(如Ubuntu keyserver)，方便其他用户下载使用，也可以手动上传到多个公钥服务器加快同步进度</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">gpg --send-keys --keyserver keyserver.ubuntu.com $GPGKEY
+</code></pre></div>
+<p>也可通过浏览器直接上传之前导出的公钥。由于任何人都可以向公钥服务器上传公钥，因此通常将公钥指纹(fingerprint)公布，方便使用者验证</p>
+
+<h2>导入公钥</h2>
+
+<p>可通过公钥服务器查找任何一份公钥</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">gpg --keyserver keyserver.ubuntu.com --search-keys $GPGKEY
+</code></pre></div>
+<p>要使用别人的公钥，需先导入至密钥数据库。首先获取对方的公钥，然后运行</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">gpg --import public-key.txt
+</code></pre></div>
+<p>默认从stdin读入</p>
+
+<h2>密钥管理</h2>
+
+<p>列出所有密钥数据库中信息</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">gpg --list-keys
+</code></pre></div>
+<p>返回信息包括公钥、私钥特征和uid，如</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">${HOME}/.gnupg/pubring.gpg
+---------------------------
+pub   2048R/35D7ED67 2014-06-30
+uid                  Yichen Zhao (First) &lt;zebrap25@gmail.com&gt;
+sub   2048R/53055D3E 2014-06-30
+</code></pre></div>
+<p>其他显示额外内容的命令包括</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">gpg --list-sigs
+gpg --fingerprint
+gpg --list-secret-keys
+</code></pre></div>
+<p>删除指定uid的公钥，使用</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">gpg --delete-keys $GPGKEY
+</code></pre></div>
+<p>希望删除自己的公钥，需先删除私钥，使用</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">gpg --delete-secret-keys $GPGKEY
+</code></pre></div>
+<p>修改密钥指纹、签名等使用</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">gpg --edit-key $GPGKEY
+</code></pre></div>
+<p>进入界面后可输入<code>help</code>查看可操作内容</p>
+
+<h1>使用</h1>
+
+<h2>加密和解密</h2>
+
+<p>完成之前操作，便可使用密钥加密和解密信息。如将demo.txt加密后以demo.en.txt输出，使用的公钥通过<code>--recipient</code>指明</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">gpg --recipient $GPGKEY --output demo.en.txt --encrypt demo.txt
+</code></pre></div>
+<p>解密，如接收到demo.en.txt，解密以demo.de.txt输出</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">gpg --output demo.de.txt --decrypt demo.en.txt
+</code></pre></div>
+<p>其中<code>--decrypt</code>可省略</p>
+
+<h2>签名和校验签名</h2>
+
+<p>若并不希望加密，仅希望给文件签名证明文件确实是我发的，使用</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">gpg --sign demo.txt
+</code></pre></div>
+<p>导出的签名文件demo.txt.gpg将被压缩，是不可读的。若希望导出可读的文件使用</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">gpg --clearsign demo.txt
+</code></pre></div>
+<p>导出签名文件demo.txt.asc。若希望保持原文件清晰，可将签名和原文件分开保存，使用</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">gpg --detach-sign demo.txt
+</code></pre></div>
+<p>推荐此方式，导出独立的签名文件demo.txt.sig是二进制文件，添加<code>--armor</code>导出ASCII形式。若希望同时签名和加密，可执行集合了加密和签名选项的命令</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">gpg --local-user [sender-uid] --recipient $GPGKEY --armor --sign \
+    --encrypt demo.txt
+</code></pre></div>
+<p>若文件同时加密和签名，校验签名在解密过程中完成。手动校验使用</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">gpg --verify demo.txt.sig
+</code></pre></div>
+<p>其中<code>--verify</code>可省略</p>
+
+<h1>参看</h1>
+
+<ul>
+<li><a href="https://www.gnupg.org/" title="The GNU Privacy Guard">GnuPG</a></li>
+<li><a href="http://zh.wikipedia.org/wiki/GnuPG" title="GnuPG">GnuPG-维基百科</a></li>
+<li><a href="https://www.gnupg.org/howtos/zh/index.html" title="Gnu隐私卫士(GnuPG)袖珍HOWTO(中文版)">Gnu隐私卫士(GnuPG)袖珍HOWTO(中文版)</a></li>
+<li><a href="https://help.ubuntu.com/community/GnuPrivacyGuardHowto" title="GnuPrivacyGuardHowto">GnuPrivacyGuardHowto</a></li>
+<li><a href="http://www.ruanyifeng.com/blog/2013/07/gpg.html" title="GPG入门教程">GPG入门教程</a></li>
+</ul>
+
+</div>
+
+
+          <div class="footer">
+            <div class="contact">
+              <p>
+                <a href="feed.xml">feed: rss 2.0</a><br />
+                <a href="https://github.com/zp25">github.com/zp25</a><br />
+                <a href="mailto:zebrap25@gmail.com" target="_blank">zebrap25@gmail.com</a>
+              </p>
+            </div>
+          </div>
+        </div>
+
+    </body>
+</html>
