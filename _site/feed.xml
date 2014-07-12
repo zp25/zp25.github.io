@@ -761,7 +761,21 @@ auth-user-pass
 
 &lt;h2&gt;init&lt;/h2&gt;
 
-&lt;p&gt;当内核被引导并进行初始化之后，内核就可以启动自己的第一个用户空间应用程序了。这是第一个调用的使用标准C库编译的程序。在此之前，还没有执行任何标准的C应用程序。init(initialization)是Unix和类Unix系统中用来产生其它所有进程的程序。它以守护进程的方式存在，其进程号为1。Ubuntu和其它一些发行版现在开始采用&lt;a href=&quot;http://zh.wikipedia.org/wiki/Upstart&quot; title=&quot;Upstart&quot;&gt;Upstart&lt;/a&gt;来代替传统的init进程，随着Debian Jessie默认使用&lt;a href=&quot;http://zh.wikipedia.org/wiki/Systemd&quot; title=&quot;systemd&quot;&gt;systemd&lt;/a&gt;作为init系统，Ubuntu也确定将采用systemd。&lt;/p&gt;
+&lt;p&gt;当内核被引导并进行初始化之后，内核就可以启动自己的第一个用户空间应用程序了。这是第一个调用的使用标准C库编译的程序。在此之前，还没有执行任何标准的C应用程序。init(initialization)是Unix和类Unix系统中用来产生其它所有进程的程序。它以守护进程的方式存在，其进程号为1。init进程非常独特，能够完成其他进程无法完成的任务。&lt;/p&gt;
+
+&lt;p&gt;init系统能够定义、管理和控制init进程的行为。它负责组织和运行许多独立的或相关的初始化工作，从而让计算机系统进入某种用户预订的运行模式，如启动shell或进入图形界面。&lt;/p&gt;
+
+&lt;p&gt;init系统不断发展，早先的&lt;a href=&quot;http://zh.wikipedia.org/wiki/Sysvinit&quot; title=&quot;Sysvinit&quot;&gt;Sysvinit&lt;/a&gt;，之后被各发行版普遍使用的&lt;a href=&quot;http://zh.wikipedia.org/wiki/Upstart&quot; title=&quot;Upstart&quot;&gt;Upstart&lt;/a&gt;，有取代Upstart趋势的&lt;a href=&quot;http://zh.wikipedia.org/wiki/Systemd&quot; title=&quot;systemd&quot;&gt;systemd&lt;/a&gt;；随着Debian Jessie默认使用systemd作为init系统，Ubuntu也确定将采用systemd。&lt;/p&gt;
+
+&lt;p&gt;运行模式描述了系统各种可能的状态。通常有8种运行模式，即运行模式0到6和S或s。其中有3个保留运行模式&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;0，关机&lt;/li&gt;
+&lt;li&gt;1，单用户模式&lt;/li&gt;
+&lt;li&gt;6，重启&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;其余依照不同发行版有不同选择。每个运行模式X都有一个对应目录/etc/rcX.d存放启动|关闭脚本，每个脚本名称都有规范的前缀，如启动脚本S开头，关闭脚本K开头，接着的数字为启动|关闭顺序。这些脚本都是软连接，实际位于/etc/init.d。/etc/rc.local是留给用户进行个性化设置的地方，最后执行&lt;/p&gt;
 
 &lt;h1&gt;参看&lt;/h1&gt;
 
@@ -773,6 +787,8 @@ auth-user-pass
 &lt;li&gt;&lt;a href=&quot;http://www.ruanyifeng.com/blog/2013/08/linux_boot_process.html&quot; title=&quot;Linux 的启动流程&quot;&gt;Linux 的启动流程&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&quot;http://www.ibm.com/developerworks/cn/linux/l-customize-monitor-linux/index.html?ca=drs-&quot; title=&quot;定制和监视 Linux 系统启动&quot;&gt;定制和监视 Linux 系统启动&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&quot;http://linux.vbird.org/linux_basic/0510osloader.php#startup_intro&quot; title=&quot;開機流程、模組管理與 Loader&quot;&gt;開機流程、模組管理與 Loader-鳥哥的 Linux 私房菜&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://www.ibm.com/developerworks/cn/linux/1407_liuming_init1/index.html&quot; title=&quot;浅析 Linux 初始化 init 系统，第 1 部分: sysvinit&quot;&gt;浅析 Linux 初始化 init 系统，第 1 部分: sysvinit&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://www.ibm.com/developerworks/cn/linux/1407_liuming_init2/index.html?ca=drs-&quot; title=&quot;浅析 Linux 初始化 init 系统，第 2 部分: UpStart&quot;&gt;浅析 Linux 初始化 init 系统，第 2 部分: UpStart&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 </description>
 				<pubDate>Sun, 11 May 2014 00:00:00 +0800</pubDate>
