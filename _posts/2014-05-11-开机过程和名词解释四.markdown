@@ -24,7 +24,7 @@ Linux可以动态载入核心模块，如设备驱动等，精简内核同时提
 
 init系统能够定义、管理和控制init进程的行为。它负责组织和运行许多独立的或相关的初始化工作，从而让计算机系统进入某种用户预订的运行模式，如启动shell或进入图形界面。
 
-init系统不断发展，早先的[Sysvinit][sysvinit]，之后被各发行版普遍使用的[Upstart][upstart]，有取代Upstart趋势的[systemd][systemd]；随着Debian Jessie默认使用systemd作为init系统，Ubuntu也确定将采用systemd。
+init系统不断发展，早先的[Sysvinit][sysvinit]，来自Ubuntu被各发行版普遍使用的[Upstart][upstart]，有取代Upstart趋势的[systemd][systemd]；随着Debian Jessie默认使用systemd，Ubuntu也确定将采用systemd
 
 运行模式描述了系统各种可能的状态。通常有8种运行模式，即运行模式0到6和S或s。其中有3个保留运行模式
 
@@ -44,6 +44,7 @@ init系统不断发展，早先的[Sysvinit][sysvinit]，之后被各发行版�
 + [開機流程、模組管理與 Loader-鳥哥的 Linux 私房菜](http://linux.vbird.org/linux_basic/0510osloader.php#startup_intro "開機流程、模組管理與 Loader")
 + [浅析 Linux 初始化 init 系统，第 1 部分: sysvinit](http://www.ibm.com/developerworks/cn/linux/1407_liuming_init1/index.html "浅析 Linux 初始化 init 系统，第 1 部分: sysvinit")
 + [浅析 Linux 初始化 init 系统，第 2 部分: UpStart](http://www.ibm.com/developerworks/cn/linux/1407_liuming_init2/index.html?ca=drs- "浅析 Linux 初始化 init 系统，第 2 部分: UpStart")
++ [浅析 Linux 初始化 init 系统，第 3 部分: Systemd](http://www.ibm.com/developerworks/cn/linux/1407_liuming_init3/index.html?ca=drs- "浅析 Linux 初始化 init 系统，第 3 部分: Systemd")
 
 [cpio]: http://zh.wikipedia.org/wiki/Cpio "Cpio"
 [sysvinit]: http://zh.wikipedia.org/wiki/Sysvinit "Sysvinit"
