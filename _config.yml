@@ -1,5 +1,5 @@
-name: ZP
-description: ZP's blog
-url: http://zp.rensidiaochaotian.com/
+name: zp25
+description: zp25's blog
+url: https://blog.zp25.ninja/
 markdown: redcarpet
-pygments: true
+highlighter: rouge
