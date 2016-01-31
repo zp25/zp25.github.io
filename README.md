@@ -1,12 +1,8 @@
 zp25.github.io
 ==============
 
-http://zp.rensidiaochaotian.com/
+https://blog.zp25.ninja
 
 rss
 ---
 https://github.com/snaptortoise/jekyll-rss-feeds
-
-categories
-----------
-https://github.com/recurser/jekyll-plugins
