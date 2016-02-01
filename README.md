@@ -1,7 +1,9 @@
 zp25.github.io
 ==============
 
-https://blog.zp25.ninja
+zp25's blog
+
+[https://blog.zp25.ninja](https://blog.zp25.ninja)
 
 rss
 ---
