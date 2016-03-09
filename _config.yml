@@ -1,5 +1,5 @@
-name: blog
+name: Blog
 description: zp25's blog
 url: https://blog.zp25.ninja
-markdown: redcarpet
+markdown: kramdown
 highlighter: rouge
