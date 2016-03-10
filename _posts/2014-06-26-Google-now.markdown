@@ -8,7 +8,6 @@ categories: Miscellaneous
 
 *之前查了有提到把系统语言改为英文，然后语言搜索说'OK Google'就可以，然后就真试了...*
 
-# 操作过程
 ## Step 1
 打开飞行模式，打开wifi确保网络连接正常
 

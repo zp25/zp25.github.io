@@ -5,9 +5,9 @@ categories: 计算机原理
 ---
 
 # MBR
-*主引导记录(Master Boot Record, MBR)是计算机开机访问硬盘时必须读取的首个扇区，三维地址为(柱面, 磁头, 扇区) = (0, 0, 1)。MBR存储硬盘本身的相关信息和分区的大小及位置信息，是数据信息的重要入口。MBR与操作系统无关。*
+*主引导记录(Master Boot Record, MBR)是计算机开机访问硬盘时必须读取的首个扇区，三维地址为(柱面, 磁头, 扇区) = (0, 0, 1)。MBR存储硬盘本身的相关信息和分区的大小及位置信息，是数据信息的重要入口。*
 
-MBR(512bytes)分3部分
+可使用分区工具修改MBR，但MBR与操作系统无关，即只要创建了有效的MBR即可引导任意操作系统。多数情况下，硬盘扇区(sector)大小为512bytes，此时MBR的3部分为
 
 + 前446bytes存储引导代码，也称为MBR
 + 接着4个16bytes的磁盘分区表(DPT)
@@ -17,16 +17,16 @@ BIOS按启动顺序依次读取存储设备的MBR，若未发现结束标志，�
 
 DPT共64bytes，可对4个分区的信息进行描述，每个16bytes。每个字节具体定义为
 
-+ 00H，1byte，分区状态，非活动分区00，活动分区80，其他无意义
++ 00H，1byte，分区状态，非活动分区0x00，活动分区0x80，其他无意义
 + 01H，1byte，分区起始磁头号(HEAD)，全8位
 + 02H，2bytes，分区起始扇区号(SECTOR),占据02H的0-5位；分区起始柱面号(CYLINDER),占据02H的6-7位和全部03H的8位
-+ 04H，1byte，文件系统标志位，如0B为FAT32
++ 04H，1byte，文件系统标志位，如0x0B为FAT32，0x04为FAT16，0x07为NTFS
 + 05H，1byte，分区结束磁头号，全8位
-+ 06H，2bytes，分区结束扇区号，占据06H的0-5位；分区结束柱面号，占据06H的6-7位和07H的8位
++ 06H，2bytes，分区结束扇区号，06H的0-5位；分区结束柱面号，06H的6-7位和07H
 + 08H，4bytes，分区起始相对扇区号
 + 0CH，4bytes，分区总扇区数
 
-由上可知，采用MBR型分区结构的硬盘最多只能有4个主分区(Primary partition)。为了得到更多分区，需要引入扩展分区，可在其中划分无数个逻辑分区。MBR分区表中最多只能有1个扩展分区，且Linux中扩展分区的分区号只能从5(如sda5)开始；对于大于8.4G的硬盘，CHS(24位)已无法表示，需使用[LBA(Logical Block Address)][lba]；4bytes扇区总数限制分区大小，最大2T，且每个分区的起始柱面必须在这个硬盘的前2T内。因此若有一块3T硬盘，则至少需要划分为两个分区，且第二个分区起始柱面需在前2T空间内。
+由上可知，采用MBR型分区结构的硬盘最多只能有4个主分区(Primary partition)。为了得到更多分区，需要引入扩展分区，可在其中划分无数个逻辑分区(对有一个类似MBR的扩展引导记录EBR)。MBR分区表中最多只能有1个扩展分区，且Linux中扩展分区的分区号只能从5(如sda5)开始；对于大于8.4G的硬盘，CHS(24位)已无法表示，需使用[LBA(Logical Block Address)][lba]；4bytes扇区总数限制分区大小，最大2T，且每个分区的起始柱面必须在这个硬盘的前2T内。因此若有一块3T硬盘，则至少需要划分为两个分区，且第二个分区起始柱面需在前2T空间内。
 
 *以上各种分区、空间局限都在促使更合适的技术产生。*
 
@@ -42,7 +42,9 @@ GPT使用LBA，以64位Windows为例(每个逻辑块512bytes)
 + LBA -2，备份分区表
 + LBA -1，备份GPT头，位于最后一个逻辑块
 
-GPT保留传统MBR，称为保护MBR，用于防止不支持GPT的硬盘管理工具错误识别并破坏硬盘中的数据。在支持从GPT启动的操作系统中，这里也用于存储第一阶段的启动代码，并且其中只有一个标识为0xEE的分区，以此来表示使用GPT分区表。在使用MBR/GPT混合分区表的硬盘中，MBR也用于存储GPT分区表的部分分区(通常前4个)以运行不支持GPT的操作系统。
+![GUID Partition Table Scheme - By The original uploader was Kbolino at English Wikipedia - Transferred from en.wikipedia to Commons. Transfer was stated to be made by User:Kbolino., CC BY-SA 2.5, https://commons.wikimedia.org/w/index.php?curid=3036588][gpt]
+
+GPT保留传统MBR，称为保护MBR，用于防止不支持GPT的硬盘管理工具错误识别并破坏硬盘中的数据。在支持从GPT启动的操作系统中，这里也用于存储第一阶段的启动代码，并且其中只有一个标识为0xEE的分区，以此来表示使用GPT分区表。在使用MBR/GPT混合分区表的硬盘中，MBR也用于存储GPT分区表的部分分区(通常前4个)以运行不支持GPT的操作系统，Boot Camp使用这种方式启动Windows。
 
 GPT分区硬盘通过备份分区表头和分区表来提高分区数据结构的完整性，通过CRC32校验提高数据可靠性。分区表头定义了硬盘的可用空间以及组成分区表的项的大小和数量，还记录了这块硬盘的GUID、分区表头本身的位置和大小(位置总是在LBA 1)、备份分区表头和分区表的位置和大小(在硬盘的最后)、其本身和分区表的CRC32校验。
 
@@ -55,7 +57,7 @@ GPT分区表结构简单，每个分区信息占128bytes，每个字节具体含
 + 8bytes，属性标签(如60为只读)
 + 72bytes，分区名
 
-相对于2T卷大小限制的MBR，GPT分配8bytes给逻辑块地址，理论最大分区大小可为2^64-1个扇区。除超大卷外，GPT无分区个数限制，但实际需受操作系统限制，如64位Windows分区表为16,384bytes，即最多可有128个分区。
+相对于2T分区大小限制的MBR，GPT分配8bytes给逻辑块地址，理论最大分区大小可为2^64-1个扇区。除超大分区外，GPT无分区个数限制，但实际受操作系统限制，如64位Windows分区表为16,384bytes，即最多可有128个分区。
 
 *EFI完成初始化和运行DXE后挂载EFI系统分区(ESP)，剩余工作完成后将控制权交给位于此分区的第二阶段引导程序，如GRUB。*
 
@@ -64,3 +66,5 @@ GPT分区表结构简单，每个分区信息占128bytes，每个字节具体含
 + [GPT-维基百科](http://zh.wikipedia.org/wiki/%E5%85%A8%E5%B1%80%E5%94%AF%E4%B8%80%E6%A8%99%E8%AD%98%E5%88%86%E5%8D%80%E8%A1%A8 "全局唯一标识分区表")
 
 [lba]: http://zh.wikipedia.org/wiki/%E9%82%8F%E8%BC%AF%E5%8D%80%E5%A1%8A%E4%BD%8D%E5%9D%80 "逻辑区块地址"
+
+[gpt]: /assets/GUID_Partition_Table_Scheme.svg "GUID Partition Table Scheme - By The original uploader was Kbolino at English Wikipedia - Transferred from en.wikipedia to Commons. Transfer was stated to be made by User:Kbolino., CC BY-SA 2.5, https://commons.wikimedia.org/w/index.php?curid=3036588"
