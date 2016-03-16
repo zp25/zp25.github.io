@@ -28,201 +28,296 @@ categories: 安全
 OpenVPN必须双向验证，也提供了多种验证方式，包括预享密钥(仅用于点对点VPN)、第三方证书、用户名密码组合(2.0起提供)。由于OpenVPN使用通用网络协议(TCP等)，因此可以防止ISP等过滤特定VPN协议，如IPSec。
 
 # 搭建OpenVPN
-整理这些内容实际是希望搭建一个VPN，在了解OpenVPN后引出了RSA算法和OpenSSL，于是就先做些准备，也方便之后使用HTTPS。教程参考[Ubuntu服务指南中VPN内容][buildvpn]，也参考了[这篇文章][buildvpn2]。
+整理这些内容实际是希望搭建一个VPN，在了解OpenVPN后引出了RSA算法和OpenSSL，于是就先做些准备，也方便之后使用HTTPS。
 
 ## 服务器端操作
 Ubuntu 14.04，首先安装，OpenVPN2.3开始不捆绑easy-rsa(简化生成证书)，因此也需手动安装
 
-    apt-get update && apt-get install openvpn easy-rsa
+~~~bash
+apt-get update && apt-get install openvpn easy-rsa
+~~~
+由之前内容知道ssl运行需要密钥和数字证书，因此需先生成这些内容，包括创建自己的根证书(CA)，然后签发服务器和客户端证书用以身份认证。
 
-由之前内容知道ssl运行需要密钥和数字证书，因此需先生成这些内容。复制easy-rsa到openvpn配置目录，然后编辑配置信息
+~~~bash
+mkdir /etc/openvpn/easy-rsa/
+cp -r /usr/share/easy-rsa/ /etc/openvpn
 
-    mkdir /etc/openvpn/easy-rsa/
-    cp -r /usr/share/easy-rsa/* /etc/openvpn/easy-rsa/
+cd /etc/openvpn/easy-rsa
+~~~
+使用easy-rsa简化证书创建，然后创建密钥存储文件夹
 
-    cd /etc/openvpn/easy-rsa/
-    vim vars
+~~~
+vim ./vars
 
-    # 配置，必填
-    export KEY_COUNTRY="US"
-    export KEY_PROVINCE="CA"
-    export KEY_CITY="SanFrancisco"
-    export KEY_ORG="Example Company"
-    export KEY_EMAIL="me@myhost.mydomain"
-    export KEY_OU="MyOrganizationalUnit"
-    export KEY_NAME="EasyRSA"
+# 配置，必填
+export KEY_COUNTRY="US"
+export KEY_PROVINCE="CA"
+export KEY_CITY="SanFrancisco"
+export KEY_ORG="Example Company"
+export KEY_EMAIL="me@myhost.mydomain"
+export KEY_OU="MyOrganizationalUnit"
+export KEY_NAME="EasyRSA"
+~~~
+配置用于证书的基本参数
 
-接着生成CA证书，为根证书(Root CA certificate)，教程把`source vars`给翻译了...build-ca需要做一些选择，包括确认以上配置
+~~~bash
+source vars
+./clean-all
+./build-ca
+~~~
+载入修改后的配置，清理旧CA，并创建新CA；创建中要求确认基本的配置信息，Enter即可
 
-    source vars
-    ./clean-all
-    ./build-ca
+生成Server和Client证书和密钥，每个Client有各自不同的证书。另外，可选添加"HMAC firewall"来阻止Dos和UDP port flooding攻击，原理是在TLS/SSL更高层添加一个安全层，先过滤HMAC特征不符的UDP包，也起到加快处理作用，因为TLS/SSL操作比较消耗时间。期间需做和`./build-ca`相同的选择
 
-客户端身份验证最常用的是通过第三方证书，因此下一步生成客户端证书，通常每个客户端有各自不同的证书。另外，可选添加"HMAC firewall"来阻止Dos和UDP port flooding攻击，原理是在TLS/SSL更高层添加一个安全层，先过滤HMAC特征不符的UDP包，也起到加快处理作用，因为TLS/SSL操作比较消耗时间。期间需要做一些选择，如填写可选的一个密码和公司名称，确认时也记得输入'y'
+~~~bash
+# 服务器证书
+./build-key-server server
 
-    # 服务器证书
-    source vars
-    ./build-key-server server
+# 客户端证书
+./build-key client1
+./build-key client2
 
-    # 客户端证书
-    source vars
-    ./build-key client1
-    ./build-key client2
+# 服务器必须生成Diffie-Hellman参数
+# 也可使用命令 openssl dhparam -out /etc/openvpn/dh2048.pem 2048
+./build-dh
 
-    # 服务器必须生成D-H参数，增强安全性，具体为什么，再查一查
-    ./build-dh
-
-    # 添加"HMAC firewall"，记得之后的配置
-    openvpn --genkey --secret ta.key
-
-结束后，除ta.key位于/etc/openvpn外，其他生成的内容都位于./keys目录，其中包括
+# 添加"HMAC firewall"，记得之后的配置
+openvpn --genkey --secret ta.key
+~~~
+结束后，除ta.key位于`/etc/openvpn`外，其他生成的内容都位于`./keys`目录，其中包括
 
 + ca.crt，Root CA certificate，服务器和所有客户端都需要一份，因此不需保密
 + ca.key，Root CA key，用于签发私钥，保密
-+ dh{n}.pem，迪菲－赫尔曼变量
++ dh{n}.pem，Diffie-Hellman参数
 + server.crt，服务器证书，由根证书签发，其中包含服务器公钥，不需保密
 + server.key，服务器私钥，必须保密
 + client{n}.crt，客户端证书
 + client{n}.key，客户端私钥
 + ta.key，服务器和客户端都需要一份，但必须保密，因此必须在已存在的安全通道中传输
 
-通常执行以下任务，方便之后的配置
+OpenVPN在目录`/etc/openvpn`查找密钥，为方便可
 
-    cp server.crt server.key ca.crt dh2048.pem /etc/openvpn/
+~~~bash
+cp /etc/openvpn/easy-rsa/keys/{server.crt,server.key,ca.crt,dh2048.pem} /etc/openvpn
+~~~
+若有ta.key也需复制到`/etc/openvpn`
 
-之后是简单的服务器配置
+### 配置
+服务器端配置
 
-    # 复制并解压配置文件
-    cp /usr/share/doc/openvpn/examples/sample-config-files/server.conf.gz \
-        /etc/openvpn/
-    gzip -d /etc/openvpn/server.conf.gz
+~~~bash
+# 复制并解压配置文件
+cp /usr/share/doc/openvpn/examples/sample-config-files/server.conf.gz \
+    /etc/openvpn/
+gzip -d /etc/openvpn/server.conf.gz
 
-    cd /etc/openvpn
-    vim server.conf
+vim /etc/openvpn/server.conf
+~~~
 
 部分配置
 
-    # 确保以下内容写入配置文件
-    ca ca.crt
-    cert myservername.crt
-    key myservername.key 
-    dh dh2048.pem
+~~~
+# 相关密钥和证书名称，确保写入配置文件
+ca ca.crt
+cert server.crt
+key server.key 
+dh dh2048.pem
 
-    # 其他自选配置；协议使用udp因为可更好的防止Dos和UDP port flooding攻击
-    prot 1194
-    proto udp
-    comp-lzo
+# 其他自选配置；协议使用udp因为可更好的防止Dos和UDP port flooding攻击
+prot 1194
+proto udp
+comp-lzo
 
-    # 若希望将服务器作为客户端的网关(目的很明确嘛)则需去除以下内容的注释
-    # 使用Google Public DNS
-    push "redirect-gateway def1 bypass-dhcp"
-    push "dhcp-option DNS 8.8.8.8"
-    push "dhcp-option DNS 8.8.4.4"
+# 若希望将服务器作为客户端的网关(目的很明确嘛)则需去除以下内容的注释
+# 使用Google Public DNS或默认
+push "redirect-gateway def1 bypass-dhcp"
+push "dhcp-option DNS 8.8.8.8"
+push "dhcp-option DNS 8.8.4.4"
 
-    # 将OpenVPN作为非特权用户运行是很好的安全策略，取消两行注释
-    user nobody
-    group nogroup
+# 将OpenVPN作为非特权用户运行是很好的安全策略，取消两行注释
+user nobody
+group nogroup
 
-    # "HMAC firewall"配置，第二个参数在服务器端为0，客户端为1
-    tls-auth ta.key 0
+# "HMAC firewall"配置，第二个参数在服务器端为0，客户端为1
+tls-auth ta.key 0
 
-最后一步，非常重要，路由转发配置(目的很明确嘛)
+# log地址
+log-append /var/log/openvpn.log
+~~~
+log默认写入`/var/log/syslog`，可自定义；接着非常重要一步，路由转发配置
 
-    vim /etc/sysctl.conf
+~~~
+vim /etc/sysctl.conf
 
-    # 取消ip_forward注释
-    net.ipv4.ip_forward = 1
+# 取消ip_forward注释
+net.ipv4.ip_forward = 1
 
-    # 退出vim后重新载入sysctl
-    sysctl -p
+# 退出vim后重新载入sysctl
+sysctl -p
+~~~
 
-依照教程，直接修改iptables；由于服务器使用了ufw，所以找到了对应的配置方式，详细见[这篇文章][openvpnufw]
+直接修改iptables或配置ufw
 
-    # 直接修改iptables
-    iptables -t nat -A POSTROUTING -s 10.8.0.0/24 -o eth0 -j MASQUERADE
-    service iptables save
+~~~bash
+# 直接修改iptables
+iptables -t nat -A POSTROUTING -s 10.8.0.0/24 -o eth0 -j MASQUERADE
+service iptables save
 
-    # 或使用ufw配置
-    # 先配置允许封包转发
-    vim /etc/default/ufw
-    DEFAULT_FORWARD_POLICY="ACCEPT"
+# 使用ufw配置
+# OpenVPN使用UDP端口
+ufw allow 1194/udp
 
-    # 之后修改规则
-    vim /etc/ufw/before.rules
+# 允许封包转发
+vim /etc/default/ufw
 
-    # 以下内容需添加在"*filter"行前，就是添加在规则的最前端
-    # START OPENVPN RULES
-    # NAT table rules
-    *nat
-    :POSTROUTING ACCEPT [0:0]
-    # Allow traffic from OpenVPN client to eth0
-    -A POSTROUTING -s 10.8.0.0/8 -o eth0 -j MASQUERADE
-    COMMIT
-    # END OPENVPN RULES
+DEFAULT_FORWARD_POLICY="ACCEPT"
 
-服务器端任务完成，以服务开启`service openvpn start`，或通过命令`openvpn`开启。开启后可查看生成的虚拟网卡信息`ifconfig tun0`。不要忘了开启端口`ufw allow 1194`。一切正常，进入客户端操作
+# ufw规则修改规则
+vim /etc/ufw/before.rules
+
+# 以下内容需添加在"*filter"行前，就是添加在规则的最前端
+# START OPENVPN RULES
+# NAT table rules
+*nat
+:POSTROUTING ACCEPT [0:0]
+# Allow traffic from OpenVPN client to eth0
+-A POSTROUTING -s 10.8.0.0/8 -o eth0 -j MASQUERADE
+COMMIT
+# END OPENVPN RULES
+
+# 完成
+ufw reload
+~~~
+服务器端任务完成
+
+~~~bash
+service openvpn start
+service openvpn status
+
+ifconfig tun0
+~~~
+启动服务和查看信息。一切正常，进入客户端操作
 
 ## 客户端操作
-客户端内容均测试通过，其中桌面为Ubuntu 14.04；ios为7.1.1；android为4.4.2
+进入client1，将之前生成的client1.crt, client1.key, ca.crt, ta.key移至`/etc/openvpn`
 
-### Ubuntu
-选择OpenVPN client，因此客户端也需安装OpenVPN，并将之前生成的client1.crt client1.key ca.crt移至/etc/openvpn
+~~~bash
+scp newuser@SERVER_IP_ADDRESS:/etc/openvpn/easy-rsa/keys/client1.key Downloads/
+~~~
+使用SCP(Secure Copy)下载
 
-    cp /usr/share/doc/openvpn/examples/sample-config-files/client.conf \
-        /etc/openvpn/
+~~~bash
+cp /usr/share/doc/openvpn/examples/sample-config-files/client.conf \
+   /etc/openvpn/
 
-    cd /etc/openvpn
-    vim client.conf
+cd /etc/openvpn
+vim client.conf
+~~~
 
 部分配置
 
-    # 确保以下内容写入配置文件
-    ca ca.crt
-    cert client1.crt
-    key client1.key
+~~~
+# 确保以下内容写入配置文件
+ca ca.crt
+cert client1.crt
+key client1.key
 
-    # 注意修改服务器地址，端口和协议必须与服务器相同，服务器开启压缩则客户端也必须开启
-    remote vpnserver.example.com 1194
-    prot 1194
-    proto udp
-    comp-lzo
+# 注意修改服务器地址，端口和协议必须与服务器相同，服务器开启压缩则客户端也必须开启
+remote vpnserver.example.com 1194
+prot 1194
+proto udp
+comp-lzo
 
-    # 将OpenVPN作为非特权用户运行是很好的安全策略，取消两行注释
-    user nobody
-    group nogroup
+# 将OpenVPN作为非特权用户运行是很好的安全策略，取消两行注释
+user nobody
+group nogroup
 
-    # "HMAC firewall"配置，第二个参数在服务器端为0，客户端为1
-    tls-auth ta.key 1
+# "HMAC firewall"配置，第二个参数在服务器端为0，客户端为1
+tls-auth ta.key 1
 
-配置完成，可开启客户端`service openvpn start`，同样也可以查看虚拟网卡信息`ifconfig tun0`，ping服务器是否在线`ping 10.8.0.1`，也可查看路由信息确定是否连接成功`netstat -rn`
+# log地址
+log-append /var/log/openvpn.log
+~~~
+配置完成，可开启客户端
 
-### ios
-app store下载官方OpenVPN Connect应用，编辑一份client.conf，将其重命名为.ovpn扩展名。将各种证书和密钥以in-line方式写入ovpn文件，具体样例见[此文][iosinline]。想办法将此配置文件移入ios设备，如通过邮件或iTunes同步等。完成后使用OpenVPN打开，跳转到OpenVPN后会看到有发现新配置的信息，右下方点击绿色的加号便可完成导入。打开服务测试。
+~~~bash
+service openvpn start
 
-### android
-android操作与ios几乎相同。安装官方OpenVPN Connect应用，制作ovpn文件后存入手机。打开OpenVPN，点击菜单，Import，选择ovpn文件导入。打开服务测试。
+ifconfig tun0
+
+# 服务器是否在线
+ping 10.8.0.1
+
+# 查看路由信息确定是否连接成功
+netstat -rn
+~~~
+开启服务和信息查询
+
+DNS，系统使用`/etc/resolv.conf`配置DNS服务，用于所有服务的域名解析。若需openvpn使用server端DNS，需修改此配置。利用openresolv可实现多程序无碰撞的修改此配置
+
+~~~bash
+apt-get update && apt-get install openresolv
+~~~
+安装openresolv后重启网络，查看resolv.conf发现`# Generated by resolvconf`字样表明配置成功，openresolv会自动根据系统配置，因此无需更多手动配置。确定可执行文件地址正确，向client.conf添加
+
+~~~
+script-security 2
+up /etc/openvpn/update-resolv-conf
+down /etc/openvpn/update-resolv-conf
+~~~
+打开和关闭openvpn时查看resolv.conf反向修改
+
+### 移动设备
+下载官方OpenVPN Connect应用，编辑一份client.conf并重命名为client.ovpn。将各种证书和密钥以in-line方式写入ovpn文件，具体见[此文][inline]。样例
+
+~~~
+client
+dev tun
+remote vpnserver.example.com 1194
+proto udp
+comp-lzo
+resolv-retry infinite
+nobind
+persist-key
+persist-tun
+ns-cert-type server
+verb 3
+key-direction 1
+
+<ca>
+-----BEGIN CERTIFICATE-----
+copy ca.crt here
+-----END CERTIFICATE-----
+</ca>
+<cert>
+Certificate:
+infos
+-----END CERTIFICATE-----
+copy client.crt here
+-----END CERTIFICATE-----
+</cert>
+<key>
+-----BEGIN PRIVATE KEY-----
+copy client.key here
+-----END PRIVATE KEY-----
+</key>
+<tls-auth>
+#
+# 2048 bit OpenVPN static key
+#
+-----BEGIN OpenVPN Static key V1-----
+copy ta.key here
+-----END OpenVPN Static key V1-----
+</tls-auth>
+~~~
+
+想办法将此配置文件移入ios设备，如通过邮件或iTunes同步等。完成后使用OpenVPN打开，跳转到OpenVPN后会看到有发现新配置的信息，右下方点击绿色的加号便可完成导入。打开服务测试。
 
 ## 使用其他方式进行客户端身份认证
-以上使用第三方证书方式认证，之前提到还有两种认证方式，静态密钥方式[查看此文][static]。另一种是OpenVPN2.0起可以选择的用户名/密码认证方式，简化认证，但我暂时不使用，没有经历就不太好发言，这里只是把手册中提到的设置方式整理出来，方便以后需要使用时查看。登录用户使用系统的local user和passwd。不需生成客户端证书，但ca.crt依然需要
+以上使用第三方证书方式认证，之前提到还有两种认证方式，静态密钥方式[查看此文][static]。另一种是OpenVPN2.0起可以选择的用户名/密码认证方式，简化认证
 
-    # server.conf配置
-    # 声明使用openvpn-auth-pam扩展
-    plugin /usr/lib/openvpn/openvpn-plugin-auth-pam.so login
-
-    # 关闭证书认证而仅使用用户名/密码认证
-    client-cert-not-required
-    username-as-common-name
-
-
-    # client.conf配置
-    # 用户名和密码在连接时提供，加密传输给服务器后由以下配置触发认证
-    auth-user-pass
-
-    # 注释客户端证书和密钥内容
-    ;cert client1.crt
-    ;key client1.key
-
-客户端连接时需输入用户名/密码。
+## DNS污染
+虽然server.conf配置redirect-gateway且将server的DNS结果push到client，但是依然受到DNS污染，导致https连接几乎全出现URL和证书的地址不符；可能的原因是，虽然设置server为默认网关，但同时会向两个网关查询DNS，使用先响应的
 
 ## 避免被防火墙拦截
 SSL在握手过程中是明文传输的，且看了几篇文章都说OpenVPN报文特征明显。有提到使用静态证书认证的，可以防止交换密钥时由于明显特征被阻拦OpenVPN服务的防火墙识别。还有是可以通过另一种不被拦截的服务通道传输OpenVPN报文，如SSH。
@@ -235,6 +330,10 @@ SSL在握手过程中是明文传输的，且看了几篇文章都说OpenVPN报�
 + [IPsec-维基百科](http://zh.wikipedia.org/wiki/IPsec "IPsec")
 + [VPN 隧道协议PPTP、L2TP、IPSec和SSLVPN的区别](https://www.x-berry.com/vpn-tunneling-protocol/ "VPN 隧道协议PPTP、L2TP、IPSec和SSLVPN的区别")
 + [OpenVPN文档-HOWTO](http://openvpn.net/index.php/open-source/documentation/howto.html "HOWTO")
++ [How To Set Up an OpenVPN Server on Ubuntu 14.04](https://www.digitalocean.com/community/tutorials/how-to-set-up-an-openvpn-server-on-ubuntu-14-04 "How To Set Up an OpenVPN Server on Ubuntu 14.04")
++ [OpenVPN-archlinux](https://wiki.archlinux.org/index.php/OpenVPN "OpenVPN")
++ [Ubuntu服务指南 OpenVPN](https://help.ubuntu.com/14.04/serverguide/openvpn.html "Ubuntu服务指南 OpenVPN")
++ [OpenVPN – forward all client traffic through tunnel using UFW](http://www.gaggl.com/2013/04/openvpn-forward-all-client-traffic-through-tunnel-using-ufw/ "OpenVPN – forward all client traffic through tunnel using UFW")
 
 [gre]: http://zh.wikipedia.org/wiki/%E9%80%9A%E7%94%A8%E8%B7%AF%E7%94%B1%E5%B0%81%E8%A3%85 "通用路由封装"
 [ppp]: http://zh.wikipedia.org/wiki/%E7%82%B9%E5%AF%B9%E7%82%B9%E5%8D%8F%E8%AE%AE "点对点协议"
@@ -242,8 +341,5 @@ SSL在握手过程中是明文传输的，且看了几篇文章都说OpenVPN报�
 [openswan]: https://www.openswan.org/ "Openswan"
 [openvpn]: http://openvpn.net/ "OpenVPN"
 [openssl]: http://www.openssl.org/ "OpenSSL"
-[buildvpn]: https://help.ubuntu.com/14.04/serverguide/openvpn.html "OpenVPN"
-[buildvpn2]: https://www.digitalocean.com/community/tutorials/how-to-setup-and-configure-an-openvpn-server-on-centos-6 "How to Setup and Configure an OpenVPN Server on CentOS 6"
-[openvpnufw]: http://www.gaggl.com/2013/04/openvpn-forward-all-client-traffic-through-tunnel-using-ufw/ "OpenVPN – forward all client traffic through tunnel using UFW"
-[iosinline]: https://community.openvpn.net/openvpn/wiki/IOSinline "IOSinline"
+[inline]:https://community.openvpn.net/openvpn/wiki/IOSinline "inline"
 [static]: http://openvpn.net/index.php/open-source/documentation/miscellaneous/78-static-key-mini-howto.html "HOWTO-Static key configurations"
