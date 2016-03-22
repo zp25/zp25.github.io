@@ -1,0 +1,37 @@
+---
+layout: post
+title:  RFC 4122 - UUID
+categories: 计算机原理
+---
+
+Universally unique identifier(UUID)是一个标识符标准(identifier standard)，目的是为分布式系统所有元素提供唯一的标识信息。
+
+UUID由128bit二进制数组成，为了阅读方便，通常使用[规范格式(Canonical form)][cf]表示：使用32个16进制数，以`-`分割为5段，每段16进制数分布为`8-4-4-4-12`。
+
+~~~
+xxxxxxxx-xxxx-Mxxx-Nxxx-xxxxxxxxxxxx
+
+// 例
+123e4567-e89b-12d3-a456-426655440000
+~~~
+UUID格式通过变体(variant)和variant中具体的版本(version)确定，其中N是最主要的特征符号，代表variant，依照不同variant使用其中的1到3位。当前UUID规范由RFC 4122定义，对应N有固定的两位`10`，因此只可能取值`8, 9, a, b`。其它variant为预留或向后兼容用途，例如nil UUID是128个0，与UUID规范的N不同。
+
+UUID版本通过M表示，当前规范有5个版本，M可选值为`1, 2, 3, 4, 5`。这5个版本使用不同算法，利用不同的信息来产生UUID，各版本有各自优势，适用于不同情景。具体使用的信息
+
++ version 1, date-time & MAC address
++ version 2, date-time & group/user id
++ version 3, MD5 hash & namespace
++ version 4, pseudo-random number
++ version 5, SHA-1 hash & namespace
+
+使用较多的是版本1和版本4，其中版本1使用当前时间戳和MAC地址信息。版本4使用(伪)随机数信息，128bit中，除去版本确定的4bit和variant确定的2bit，其它122bit全部由(伪)随机数信息确定。
+
+因为时间戳和随机数的唯一性，版本1和版本4总是生成唯一的标识符。若希望对给定的一个名称总是产生相同的标识符，使用版本3或版本5。
+
+# 参看
++ [A Universally Unique IDentifier (UUID) URN Namespace](https://www.ietf.org/rfc/rfc4122.txt "A Universally Unique IDentifier (UUID) URN Namespace")
++ [Universally unique identifier-wikipedia](https://en.wikipedia.org/wiki/Universally_unique_identifier "Universally unique identifier")
++ [Globally unique identifier-wikipedia](https://en.wikipedia.org/wiki/Globally_unique_identifier "Globally unique identifier")
++ [Which UUID version to use?](http://stackoverflow.com/questions/20342058/which-uuid-version-to-use "Which UUID version to use?")
+
+[cf]: https://en.wikipedia.org/wiki/Canonical_form "Canonical form"
