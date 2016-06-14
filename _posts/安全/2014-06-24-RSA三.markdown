@@ -34,20 +34,21 @@ OpenVPN必须双向验证，也提供了多种验证方式，包括预享密钥(
 Ubuntu 14.04，首先安装，OpenVPN2.3开始不捆绑easy-rsa(简化生成证书)，因此也需手动安装
 
 ~~~bash
-apt-get update && apt-get install openvpn easy-rsa
+apt-get update
+apt-get install openvpn easy-rsa
 ~~~
 由之前内容知道ssl运行需要密钥和数字证书，因此需先生成这些内容，包括创建自己的根证书(CA)，然后签发服务器和客户端证书用以身份认证。
 
 ~~~bash
-mkdir /etc/openvpn/easy-rsa/
 cp -r /usr/share/easy-rsa/ /etc/openvpn
+mkdir /etc/openvpn/easy-rsa/keys
 
 cd /etc/openvpn/easy-rsa
 ~~~
 使用easy-rsa简化证书创建，然后创建密钥存储文件夹
 
 ~~~
-vim ./vars
+vim vars
 
 # 配置，必填
 export KEY_COUNTRY="US"
@@ -56,7 +57,8 @@ export KEY_CITY="SanFrancisco"
 export KEY_ORG="Example Company"
 export KEY_EMAIL="me@myhost.mydomain"
 export KEY_OU="MyOrganizationalUnit"
-export KEY_NAME="EasyRSA"
+
+export KEY_NAME="server"
 ~~~
 配置用于证书的基本参数
 
@@ -70,7 +72,7 @@ source vars
 生成Server和Client证书和密钥，每个Client有各自不同的证书。另外，可选添加"HMAC firewall"来阻止Dos和UDP port flooding攻击，原理是在TLS/SSL更高层添加一个安全层，先过滤HMAC特征不符的UDP包，也起到加快处理作用，因为TLS/SSL操作比较消耗时间。期间需做和`./build-ca`相同的选择
 
 ~~~bash
-# 服务器证书
+# 服务器证书，名称server与vars中KEY_NAME一致
 ./build-key-server server
 
 # 客户端证书
@@ -106,10 +108,7 @@ cp /etc/openvpn/easy-rsa/keys/{server.crt,server.key,ca.crt,dh2048.pem} /etc/ope
 服务器端配置
 
 ~~~bash
-# 复制并解压配置文件
-cp /usr/share/doc/openvpn/examples/sample-config-files/server.conf.gz \
-    /etc/openvpn/
-gzip -d /etc/openvpn/server.conf.gz
+gunzip -c /usr/share/doc/openvpn/examples/sample-config-files/server.conf.gz > /etc/openvpn/server.conf
 
 vim /etc/openvpn/server.conf
 ~~~
@@ -282,7 +281,6 @@ persist-key
 persist-tun
 ns-cert-type server
 verb 3
-key-direction 1
 
 <ca>
 -----BEGIN CERTIFICATE-----
@@ -291,7 +289,7 @@ copy ca.crt here
 </ca>
 <cert>
 Certificate:
-infos
+  infos
 -----END CERTIFICATE-----
 copy client.crt here
 -----END CERTIFICATE-----
@@ -334,6 +332,7 @@ SSL在握手过程中是明文传输的，且看了几篇文章都说OpenVPN报�
 + [OpenVPN-archlinux](https://wiki.archlinux.org/index.php/OpenVPN "OpenVPN")
 + [Ubuntu服务指南 OpenVPN](https://help.ubuntu.com/14.04/serverguide/openvpn.html "Ubuntu服务指南 OpenVPN")
 + [OpenVPN – forward all client traffic through tunnel using UFW](http://www.gaggl.com/2013/04/openvpn-forward-all-client-traffic-through-tunnel-using-ufw/ "OpenVPN – forward all client traffic through tunnel using UFW")
++ [How To Run OpenVPN in a Docker Container on Ubuntu 14.04](https://www.digitalocean.com/community/tutorials/how-to-run-openvpn-in-a-docker-container-on-ubuntu-14-04 "How To Run OpenVPN in a Docker Container on Ubuntu 14.04")
 
 [gre]: http://zh.wikipedia.org/wiki/%E9%80%9A%E7%94%A8%E8%B7%AF%E7%94%B1%E5%B0%81%E8%A3%85 "通用路由封装"
 [ppp]: http://zh.wikipedia.org/wiki/%E7%82%B9%E5%AF%B9%E7%82%B9%E5%8D%8F%E8%AE%AE "点对点协议"
