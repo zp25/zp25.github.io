@@ -119,3 +119,4 @@ sudo dpkg-reconfigure ca-certificates
 
 # Manual
 + [Initial Server Setup with Ubuntu 14.04](https://www.digitalocean.com/community/tutorials/initial-server-setup-with-ubuntu-14-04 "Initial Server Setup with Ubuntu 14.04")
++ [How To Use SSH Keys with DigitalOcean Droplets](https://www.digitalocean.com/community/tutorials/how-to-use-ssh-keys-with-digitalocean-droplets "How To Use SSH Keys with DigitalOcean Droplets")
