@@ -1,0 +1,35 @@
+---
+layout: post
+title:  HTTP/2服务器 - 工具
+categories: 应用
+---
+
+查看TLS内容，数字证书在TLS协商对称密钥时由服务器发送给浏览器，其中包含一把公钥，用于加密pre-master key。浏览器需要证明这把公钥确实属于服务器(协商过程明文进行，需防止中间人攻击)，数字证书就是证明方式。数字证书由CA颁发，是CA利用私钥将域名、服务器等相关信息加密后得到的。浏览器的证书管理器预先安装受信任CA的公钥，拿到数字证书后利用受信任CA的公钥解密得到携带的受认证的信息。
+
+# Let’s Encrypt: How It Works
+Let’s Encrypt和ACME(Automated Certificate Management Environment)协议(通过JSON-over-HTTPS接口，来自动化对域名认证证书的管理)的目标是能完全自动的搭建起HTTPS服务并获取浏览器信任的证书。需要在server上运行一个证书管理代理(certificate management agent)。
+
+完成整个过程需两步，首先agent向CA证明自己管理着域名，之后agent可以为这个域名申请、更新、注销认证证书。
+
+第一步，agent第一次和Let’s Encrypt CA通信时会生成一对密钥，并将需要认证的域名发送给Let’s Encrypt CA。为了证明域名确实受agent管理，Let’s Encrypt CA会给出一个或几个证明方式，例如
+
++ 要求agent提供域名的DNS
++ 要求agent利用此域名定位一个资源
+
+agent需要完成证明方式中的一种，例如按要求将资源ed98使用`https://example.com/8303`定位来证明agent管理着`example.com`。agent还需要将公钥交给Let’s Encrypt CA。为了证明收到的公钥确实属于agent，会生成一个随机量，要求agent使用私钥加密并返回。若Let’s Encrypt CA可以访问到资源，且利用公钥解密得到随机量，通过证明，称密钥对为'authorized key pair' for example.com，用于后续安全通信。
+
+完成证明后，对域名的证书操作将非常简单，agent只需将管理信息使用私钥加密后发送给Let’s Encrypt CA即可。
+
+申请证书，发送PKCS#10 CSR(Certificate Signing Request)，其中包括需要签名的公钥和使用对应私钥加密的域名等相关信息(策略类似authorized key pair的认证)，这些信息再通过authorized key pair的私钥加密保证安全。Let’s Encrypt CA收到后对两个签名进行认证，然后将公钥、域名等相关信息利用CA的私钥加密得到的证书返回给agent。
+
+撤销证书过程类似，agent利用authorized key pair的私钥加密需撤销的证书后发送给Let’s Encrypt CA。证书撤销后CA将撤销信息发送到normal revocation channels(如CRLs, OCSP)，用于浏览器等更新。
+
+
+# Manual
++ [Let’s Encrypt](https://letsencrypt.org/ "Let’s Encrypt")
++ [How It Works](https://letsencrypt.org/how-it-works/ "How It Works")
++ [ACME Specification](https://github.com/letsencrypt/acme-spec "ACME Specification")
++ [HTTP严格传输安全-维基百科](https://zh.wikipedia.org/wiki/HTTP%E4%B8%A5%E6%A0%BC%E4%BC%A0%E8%BE%93%E5%AE%89%E5%85%A8 "HTTP严格传输安全")
++ [域名系统安全扩展-维基百科](https://zh.wikipedia.org/wiki/%E5%9F%9F%E5%90%8D%E7%B3%BB%E7%BB%9F%E5%AE%89%E5%85%A8%E6%89%A9%E5%B1%95 "域名系统安全扩展")
++ [Enforce Web Policy with HTTP Strict Transport Security (HSTS)](https://blog.cloudflare.com/enforce-web-policy-with-hypertext-strict-transport-security-hsts/ "Enforce Web Policy with HTTP Strict Transport Security (HSTS)")
++ [NGINX Mainline : “Nginx” team - Launchpad](https://launchpad.net/~nginx/+archive/ubuntu/development "NGINX Mainline : “Nginx” team - Launchpad")
