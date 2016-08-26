@@ -50,11 +50,19 @@ prot 22
 
 # 是否允许以root连接，默认yes
 PermitRootLogin no
+
+# 是否允许使用密码登录，去除注释，修改为no
+PasswordAuthentication no
+
+# 与证书登录相关，默认已设置
+PubkeyAuthentication yes
+ChallengeResponseAuthentication no
 ~~~
 可适当修改SSH配置，如选择阻止root登录
 
 ~~~bash
-service ssh restart
+# service ssh restart
+systemctl reload sshd
 ~~~
 重启SSH服务。
 
@@ -80,6 +88,11 @@ sudo apt-get install ufw
 
 # 查看状态
 sudo ufw status
+
+# 查看支持的app
+$ sudo ufw app list
+Available applications:
+  OpenSSH
 ~~~
 安装并查看状态，ufw运行前只显示Status: inactive，运行后可查看状态和具体规则。
 
@@ -119,4 +132,5 @@ sudo dpkg-reconfigure ca-certificates
 
 # Manual
 + [Initial Server Setup with Ubuntu 14.04](https://www.digitalocean.com/community/tutorials/initial-server-setup-with-ubuntu-14-04 "Initial Server Setup with Ubuntu 14.04")
++ [Initial Server Setup with Ubuntu 16.04](https://www.digitalocean.com/community/tutorials/initial-server-setup-with-ubuntu-16-04 "Initial Server Setup with Ubuntu 16.04")
 + [How To Use SSH Keys with DigitalOcean Droplets](https://www.digitalocean.com/community/tutorials/how-to-use-ssh-keys-with-digitalocean-droplets "How To Use SSH Keys with DigitalOcean Droplets")
