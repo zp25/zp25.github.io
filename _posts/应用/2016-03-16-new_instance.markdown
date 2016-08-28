@@ -88,11 +88,6 @@ sudo apt-get install ufw
 
 # 查看状态
 sudo ufw status
-
-# 查看支持的app
-$ sudo ufw app list
-Available applications:
-  OpenSSH
 ~~~
 安装并查看状态，ufw运行前只显示Status: inactive，运行后可查看状态和具体规则。
 
@@ -100,15 +95,22 @@ Available applications:
 sudo ufw default deny incoming
 sudo ufw default allow outgoing
 
-# ufw为常用端口提供简写，如ssh, www
+# 查看支持的app
+$ sudo ufw app list
+Available applications:
+  OpenSSH
+
+# ufw为常用端口提供简写，如ssh, www，或使用列出的app
 sudo ufw allow ssh | sudo ufw allow 22/tcp
 sudo ufw allow www | sudo ufw allow 80/tcp
 sudo ufw deny 8000:8009/tcp
 
+sudo ufw allow OpenSSH
+
 # 删除之前配置的ssh规则
 sudo ufw delete allow www
 ~~~
-修改规则命令，记住一定打开ssh端口，否则之后无法连接。
+修改规则命令，记住一定打开ssh/OpenSSH端口，否则之后无法连接。
 
 ~~~bash
 sudo ufw enable | disable
