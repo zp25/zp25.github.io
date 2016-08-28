@@ -4,9 +4,14 @@ title:  HTTP/2服务器 - 工具
 categories: 应用
 ---
 
++ [Let’s Encrypt: How It Works](#letsencrypt)
++ [Certbot](#certbot)
++ [HSTS & DNSSEC](#hsts)
++ [OCSP](#ocsp)
+
 查看TLS内容，数字证书在TLS协商对称密钥时由服务器发送给浏览器，其中包含一把公钥，用于加密pre-master key。浏览器需要证明这把公钥确实属于服务器(协商过程明文进行，需防止中间人攻击)，数字证书就是证明方式。数字证书由CA颁发，是CA利用私钥将域名、服务器等相关信息加密后得到的。浏览器的证书管理器预先安装受信任CA的公钥，拿到数字证书后利用受信任CA的公钥解密得到携带的受认证的信息。
 
-# Let’s Encrypt: How It Works
+# Let’s Encrypt: How It Works {#letsencrypt}
 Let’s Encrypt和ACME(Automated Certificate Management Environment)协议(通过JSON-over-HTTPS接口，来自动化对域名认证证书的管理)的目标是能完全自动的搭建起HTTPS服务并获取浏览器信任的证书。需要在server上运行一个证书管理代理(certificate management agent)。
 
 完成整个过程需两步，首先agent向CA证明自己管理着域名，之后agent可以为这个域名申请、更新、注销认证证书。
@@ -24,12 +29,62 @@ agent需要完成证明方式中的一种，例如按要求将资源ed98使用`h
 
 撤销证书过程类似，agent利用authorized key pair的私钥加密需撤销的证书后发送给Let’s Encrypt CA。证书撤销后CA将撤销信息发送到normal revocation channels(如CRLs, OCSP)，用于浏览器等更新。
 
+# Certbot {#certbot}
+Certbot client，之前称为Let's Encrypt Client，是推荐使用的agent工具。Certbot支持许多插件，能够从Let's Encrypt获取证书，部分插件还可以自动安装证书(配置和开启HTTPS服务)，例如Apache插件。
+
+Nginx插件还在开发阶段，可以选择Webroot插件用于获取证书，需手动安装证书。使用Webroot插件需要服务器支持访问隐藏文件夹中的资源，因为Webroot通过在`${webroot-path}/.well-known/acme-challenge`目录中添加临时文件进行Let’s Encrypt CA对服务器管理域名的认证。
+
+~~~bash
+sudo apt-get install letsencrypt
+~~~
+建议通过包管理器安装certbot，ubuntu中certbot包使用旧名称letsencrypt。
+
+Let's Encrypt证书有效期为90天，可使用`certbot renew`命令续期证书。Let's Encrypt建议证书每60天续期一次。运行`certbot renew`将自动续期所有之前获取的将在30天内过期的证书，默认使用之前创建证书时使用的配置参数，也可重新传入参数修改，修改的参数将被记录，用于下次更新时使用。renew可设置钩子(hooks)
+
+~~~bash
+certbot renew --standalone --pre-hook "systemctl stop nginx"
+  --post-hook "systemctl start nginx"
+~~~
+例如修改为使用standalone插件，通过hooks管理nginx而无需手动控制。ubuntu中使用letsencrypt替换certbot命令运行。
+
+certbot目前还不能自动完成证书续期，但可通过crontab完成。因为命令仅续期30天内将过期的证书，使用crontab是安全的，可以尝试定时每周或每天运行更新命令。`--force-renew`参数可忽略30天过期的限制，强制续期所有证书，但不适合每天运行，容易达到Let's Encrypt更新证书的次数限制。
+
+# HSTS & DNSSEC {#hsts}
+HTTP严格传输安全(HTTP Strict Transport Security, HSTS)是IETF发布的互联网安全策略机制(RFC 6797)。HTTPS能实现安全的连接，但因为用户在输入URI时常忽略https协议部分，通过http 301响应跳转到https。中间人可以利用这个疏漏，实施SSL剥离攻击(SSL stripping attacks, 或称为protocol downgrade attacks)，拦截不安全的http连接，将后续连接修改为http来阻止安全连接。
+
+HSTS强制浏览器使用https，并且当证书无法验证时，如已过期等，用户无法忽略浏览器给出的警告继续访问。实现方式包括
+
++ 响应头部`Strict-Transport-Security: max-age=31536000; includeSubDomains`要求浏览器在未来1年中总是使用https发起连接，子域名继承相同策略。非HTTPS连接忽略此头部。
++ 因为通过响应头部不能安全处理第一次访问，可以让浏览器预置HSTS列表，但不能覆盖所有网站
++ 可以将HSTS加入DNS纪录中，通过DNSSEC保证DNS纪录的可靠性，目前没有广泛部署
+
+域名系统安全扩展(Domain Name System Security Extensions, DNSSEC)由IETF发布，用于对DNS客户端接收到的DNS纪录的来源进行认证，并验证不存在性和校验数据完整性。
+
+# OCSP {#ocsp}
+OCSP(Online Certificate Status Protocol, RFC 6960)是一种互联网协议，用于查询X.509数字证书是否有效，作为CRL(certificate revocation lists)的替代协议。
+
+OCSP服务器通常由证书签发CA提供，客户端和OCSP服务器通常使用HTTP通信。当浏览器和服务器进行TLS握手时，会尝试从OCSP服务器获取证书状态，了解证书是否已被注销，在确认前无法判断证书是否有效，因此会阻塞TLS握手。并且因为和OCSP服务器之间需完成一个完整的HTTP请求-响应过程，可能消耗较长时间。
+
+OCSP Stapling(OCSP装订)是OCSP的替代方案。服务器预先缓存OCSP响应，当客户端和服务器进行TLS握手时发送缓存，避免客户端再向OCSP服务器发送请求。OCSP Stapling解决了OCSP多数不足，包括缓解了OCSP服务器的压力，避免客户端向第三方询问造成可能的不安全，也避免OCSP未响应情况下的不确定性。
+
+客户端接收到的OCSP Stapling响应(OCSP服务器响应)包含两部分：response data和certificate，即证书是否撤销的验证信息和签发此证书的各级CA的证书。
+
+~~~bash
+openssl s_client -connect imququ.com:443 -status -tlsextdebug < /dev/null 2>&1 \
+  | grep -i "OCSP response"
+~~~
+查看OCSP响应，或通过grep仅查看OCSP Stapling状态
+
 
 # Manual
 + [Let’s Encrypt](https://letsencrypt.org/ "Let’s Encrypt")
 + [How It Works](https://letsencrypt.org/how-it-works/ "How It Works")
 + [ACME Specification](https://github.com/letsencrypt/acme-spec "ACME Specification")
++ [certbot](https://certbot.eff.org "certbot")
 + [HTTP严格传输安全-维基百科](https://zh.wikipedia.org/wiki/HTTP%E4%B8%A5%E6%A0%BC%E4%BC%A0%E8%BE%93%E5%AE%89%E5%85%A8 "HTTP严格传输安全")
 + [域名系统安全扩展-维基百科](https://zh.wikipedia.org/wiki/%E5%9F%9F%E5%90%8D%E7%B3%BB%E7%BB%9F%E5%AE%89%E5%85%A8%E6%89%A9%E5%B1%95 "域名系统安全扩展")
 + [Enforce Web Policy with HTTP Strict Transport Security (HSTS)](https://blog.cloudflare.com/enforce-web-policy-with-hypertext-strict-transport-security-hsts/ "Enforce Web Policy with HTTP Strict Transport Security (HSTS)")
 + [NGINX Mainline : “Nginx” team - Launchpad](https://launchpad.net/~nginx/+archive/ubuntu/development "NGINX Mainline : “Nginx” team - Launchpad")
++ [Online Certificate Status Protocol-Wikipedia](https://en.wikipedia.org/wiki/Online_Certificate_Status_Protocol "Online Certificate Status Protocol")
++ [OCSP stapling-Wikipedia](https://en.wikipedia.org/wiki/OCSP_stapling "OCSP stapling")
++ [从无法开启 OCSP Stapling 说起](https://imququ.com/post/why-can-not-turn-on-ocsp-stapling.html "从无法开启 OCSP Stapling 说起")
