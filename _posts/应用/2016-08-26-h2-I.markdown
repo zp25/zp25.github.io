@@ -8,6 +8,7 @@ categories: 应用
 + [Certbot](#certbot)
 + [HSTS & DNSSEC](#hsts)
 + [OCSP](#ocsp)
+  + [验证](#test)
 
 查看TLS内容，数字证书在TLS协商对称密钥时由服务器发送给浏览器，其中包含一把公钥，用于加密pre-master key。浏览器需要证明这把公钥确实属于服务器(协商过程明文进行，需防止中间人攻击)，数字证书就是证明方式。数字证书由CA颁发，是CA利用私钥将域名、服务器等相关信息加密后得到的。浏览器的证书管理器预先安装受信任CA的公钥，拿到数字证书后利用受信任CA的公钥解密得到携带的受认证的信息。
 
@@ -65,15 +66,42 @@ OCSP(Online Certificate Status Protocol, RFC 6960)是一种互联网协议，用
 
 OCSP服务器通常由证书签发CA提供，客户端和OCSP服务器通常使用HTTP通信。当浏览器和服务器进行TLS握手时，会尝试从OCSP服务器获取证书状态，了解证书是否已被注销，在确认前无法判断证书是否有效，因此会阻塞TLS握手。并且因为和OCSP服务器之间需完成一个完整的HTTP请求-响应过程，可能消耗较长时间。
 
-OCSP Stapling(OCSP装订)是OCSP的替代方案。服务器预先缓存OCSP响应，当客户端和服务器进行TLS握手时发送缓存，避免客户端再向OCSP服务器发送请求。OCSP Stapling解决了OCSP多数不足，包括缓解了OCSP服务器的压力，避免客户端向第三方询问造成可能的不安全，也避免OCSP未响应情况下的不确定性。
+OCSP Stapling(OCSP装订，TLS Certificate Status Request extension)是OCSP的替代方案。服务器预先缓存OCSP响应，当客户端和服务器进行TLS握手时发送缓存，避免客户端再向OCSP服务器发送请求。OCSP Stapling解决了OCSP多数不足，包括缓解了OCSP服务器的压力，避免客户端向第三方询问造成可能的不安全，也避免OCSP未响应情况下的不确定性。唯一增加的风险是OCSP Stapling缓存的响应在更新前过期。
 
-客户端接收到的OCSP Stapling响应(OCSP服务器响应)包含两部分：response data和certificate，即证书是否撤销的验证信息和签发此证书的各级CA的证书。
+客户端接收到的OCSP Stapling响应(OCSP服务器响应)包含两部分：response data和certificate，即证书是否撤销的验证信息和签发此证书的各级CA的证书。因为验证信息是由OCSP服务器签名的，不用担心OCSP Stapling响应被篡改。
+
+## 验证 {#test}
+验证OCSP Stapling状态和查看OCSP响应
 
 ~~~bash
-openssl s_client -connect imququ.com:443 -status -tlsextdebug < /dev/null 2>&1 \
+openssl s_client -connect zp25.ninja:443 -status -tlsextdebug < /dev/null 2>&1 \
   | grep -i "OCSP response"
 ~~~
-查看OCSP响应，或通过grep仅查看OCSP Stapling状态
+查看OCSP响应，或通过grep仅查看OCSP Stapling状态。
+
+客户端在TLS握手时需在ClientHello信息中明确传入Certificate Status Request extension告诉服务器希望收到OCSP响应，通过`-status`选项指定。服务器通过Certificate Status Request extension response返回OCSP响应。`-tlsextdebug`选项可打印出服务器接收到的所有TLS extensions。测试时返回错误
+
+~~~bash
+verify error:num=20:unable to get local issuer certificate
+verify return:0
+~~~
+尝试传入根证书，从钥匙串访问中导出对应根证书，使用`-CAfile root.pem`传入，验证通过。
+
+其他选项如`-showcerts`查看整个证书链，默认仅返回服务器的CA证书。可取出链中各证书，Let's Encrypt CA签发的服务器证书链为3级，其中0是服务器证书，1是中间证书(Let's Encrypt Authority x3)，根证书(DST ROOT CA x3)无需添加入chain因此省略，可使用之前导出的根证书。
+
+~~~bash
+# 可查看各证书的Common Name
+openssl x509 -noout -subject -in root.pem
+
+# 可查看各证书的OCSP服务器地址
+> openssl x509 -noout -ocsp_uri -in site.pem
+http://ocsp.int-x3.letsencrypt.org/
+
+# 尝试从OCSP服务器获取OCSP响应
+openssl ocsp -CAfile root.pem -issuer intermediate.pem -cert site.pem -no_nonce -text \
+  -url http://ocsp.int-x3.letsencrypt.org/ -header "HOST" "ocsp.int-x3.letsencrypt.org"
+~~~
+获取信息和OCSP响应。
 
 
 # Manual
