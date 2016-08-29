@@ -7,7 +7,7 @@ categories: 安全
 # 公开密钥加密
 公开密钥加密，也称为非对称(密钥)加密，是指一对加密密钥与解密密钥，这两个密钥数学相关。用某用户密钥加密后所得的信息，只能用该用户的解密密钥才能解密。如果知道了其中一个，并不能计算出另外一个。因此如果公开了一对密钥中的一个，并不会危害到另外一个的秘密性质。称公开的密钥为公钥；不公开的密钥为私钥。
 
-如果加密密钥是公开的，则称为公钥加密算法，常见有：[迪菲－赫尔曼密钥交换协议][d-h]中的公钥加密算法，RSA等，其中使用最广泛的是RSA算法；若解密密钥是公开的，则称为私钥加密算法，应用如数字证书。
+如果加密密钥是公开的，则称为公钥加密算法，使用最广泛的是RSA算法；若解密密钥是公开的，则称为私钥加密算法，应用如数字证书。
 
 # RSA
 1977年在麻省理工学院工作的三位数学家Ron Rivest、Adi Shamir、Leonard Adleman一起提出了一种算法，以他们三人姓氏开头字母组成名称，即RSA算法。RSA加密算法是一种非对称加密算法，在公开密钥加密和电子商业中广泛使用。
@@ -92,13 +92,13 @@ RSA等公开密钥加密技术效果好，但相比对称密钥加密，效率�
 
 + 加密通信版本，如TLS1.0
 + 一个客户端生成的随机数，用于随后生成会话密钥
-+ 支持的加密(RSA)和压缩算法
++ 支持的加密(cipher suite)和压缩算法
 
 **ServerHello**，服务器向客户端发送ServerHello消息
 
 + 确认使用的加密通信版本，若支持版本不一致则关闭通信
 + 一个服务器生成的随机数，用于随后生成会话密钥
-+ 确认使用的加密方法
++ 确认使用的加密方法和压缩算法
 + 服务器端证书，其中包含协商确定的加密方法的公钥
 + 若需客户端身份认证，则包含此项用于请求客户端证书(如网银要求连接U盾提供证书)
 
@@ -117,6 +117,16 @@ RSA等公开密钥加密技术效果好，但相比对称密钥加密，效率�
 
 使用3个随机数生成会话密钥，因为要保证每个对话都有不同的密钥，由双方独立生成的伪随机数可能并非真正随机，引入pre-master key增加自由度保证随机性可靠；因为之前两个随机数都是明文传输，通过加密传输pre-master key也保证会话密钥的安全
 
+## Cipher suite
+TLS/SSL在握手过程中需要协商包括认证(authentication)、加密(encryption)、MAC(message authentication code)、密钥交换算法等安全设置，这些安全设置统称为Cipher suite。每一种Cipher suite算法都有一个名称
+
++ key exchange algorithm，例如ECDHE_RSA，用于客户端和服务器确定是否或如何在握手阶段进行身份认证
++ encryption，例如AES_128_GCM，用于加密信息
++ MAC，例如SHA256，用于生成信息的摘要
++ pseudorandom function，用于生成master key的各伪随机数生成函数
+
+TLS/SSL握手阶段，客户端通过ClientHello发送支持的Cipher suite列表，服务器通过ServerHello返回从这个列表中选取的算法。
+
 *数论太神奇了*
 
 # 参看
@@ -128,8 +138,8 @@ RSA等公开密钥加密技术效果好，但相比对称密钥加密，效率�
 + [RSA算法原理（一）](http://www.ruanyifeng.com/blog/2013/06/rsa_algorithm_part_one.html "RSA算法原理（一）")
 + [RSA算法原理（二）](http://www.ruanyifeng.com/blog/2013/07/rsa_algorithm_part_two.html "RSA算法原理（二）")
 + [SSL/TLS协议运行机制的概述](http://www.ruanyifeng.com/blog/2014/02/ssl_tls.html "SSL/TLS协议运行机制的概述")
++ [Cipher suite-Wikipedia](https://en.wikipedia.org/wiki/Cipher_suite "Cipher suite")
 
-[d-h]: http://zh.wikipedia.org/wiki/Diffie-Hellman "迪菲－赫尔曼密钥交换"
 [EulerF]: http://zh.wikipedia.org/wiki/%E6%AC%A7%E6%8B%89%E5%87%BD%E6%95%B0 "欧拉函数"
 [num]: http://zh.wikipedia.org/wiki/%E6%95%B0%E8%AE%BA "数论"
 [prime]: http://zh.wikipedia.org/wiki/%E4%BA%92%E8%B3%AA "互素"
