@@ -1,0 +1,104 @@
+---
+layout: post
+title:  HTTP/2服务器
+categories: 应用
+---
+
+# 准备
+使用certbot前需确保`${www-root}/.well-known`可以被访问
+
+~~~
+location ~ /.well-known {
+    allow all;
+}
+~~~
+编辑`/etc/nginx/sites-available/default`。重新载入nginx配置。
+
+记住设置防火墙，Let’s Encrypt通过http认证，打开80端口；ubuntu中certbot包使用旧名称letsencrypt，示例中命令将certbot替换即可；需要su权限
+
+# HTTPS
+使用certbot获取证书
+
+~~~bash
+certbot certonly --webroot -w /var/www/example/ -d www.example.com -d example.com \
+    -w /var/www/other -d other.example.net -d another.other.example.net
+~~~
+示例。配置和参数
+
++ `certonly, --webroot`，选择webroot并且仅获取证书
++ `--webroot-path/-w`，服务器根路径
++ `-d`，使用指定服务器根路径的域名
+
+例中提供两个根路径，分别对应两个域名。首次使用时Let's Encrypt会要求提供email，用于接收各种提醒。完成引导程序会收到证书签发成功信息，其中包括证书存放路径和过期时间。
+
+最新生成的密钥和签发的证书都位于`/etc/letsencrypt/live/$domain`中，配置服务器时指向这些文件即可。包括
+
++ privkey.pem，证书中公钥对应的私钥，与解密pre-master key相关，需保密；nginx配置ssl_certificate_key时使用
++ cert.pem，服务器证书
++ chain.pem，服务器证书外其证书，例如root CA证书和中间CA证书；nginx配置ssl_trusted_certificate时使用
++ fullchain.pem，合并cert.pem和chain.pem
+
+实际这些都是软链接，指向最新的一套密钥和证书。所有之前生成的密钥和证书位于`/etc/letsencrypt/keys, /etc/letsencrypt/archive`中。
+
+证书续期使用`certbot renew`完成，可通过crontab定期更新，例如
+
+~~~
+sudo crontab -e
+
+# crontab
+30 2 * * 1 letsencrypt renew >> /var/log/le-renew.log
+35 2 * * 1 /bin/systemctl reload nginx
+~~~
+每周一2:30am尝试续期证书，错误信息写入log，2:35重启nginx使用新证书
+
+# nginx配置
+Diffie-Hellman参数
+
+~~~
+sudo openssl dhparam -out /etc/ssl/certs/dhparam.pem 2048
+~~~
+[迪菲－赫尔曼密钥交换协议][d-h]可以让双方在完全没有对方任何预先信息的条件下通过不安全信道创建起一个密钥，在使用明文传输的TLS握手阶段提供安全通信。
+
+配置nginx，进入配置目录snippets，创建TLS配置的可重用块
+
+~~~
+server {
+    listen 80 default_server;
+    listen [::]:80 default_server;
+    server_name example.com www.example.com;
+    return 301 https://$server_name$request_uri;
+}
+
+server {
+    listen 443 ssl http2 default_server;
+    listen [::]:443 ssl http2 default_server;
+
+    ssl_certificate /etc/letsencrypt/live/example.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/example.com/privkey.pem;
+
+    ssl_stapling on;
+    ssl_stapling_verify on;
+    ssl_trusted_certificate /etc/letsencrypt/live/example.com/chain.pem;
+
+    ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
+    ssl_prefer_server_ciphers on;
+    ssl_ciphers "EECDH+AESGCM:EDH+AESGCM:AES256+EECDH:AES256+EDH";
+    add_header Strict-Transport-Security "max-age=63072000; includeSubdomains";
+    ...
+
+    ssl_dhparam /etc/ssl/certs/dhparam.pem;
+}
+~~~
+监听80端口，使用301响应跳转至https。建议证书文件使用`chain.pem, fullchain.pem`。OCSP Stapling配置3个参数。nginx安全配置参考了<https://cipherli.st/>。
+
+SSL测试可使用<https://www.ssllabs.com/ssltest/>，h2测试使用Chrome Dev Tools即可。
+
+
+# Manual
++ [How To Set Up Nginx with HTTP/2 Support on Ubuntu 16.04](https://www.digitalocean.com/community/tutorials/how-to-set-up-nginx-with-http-2-support-on-ubuntu-16-04 "How To Set Up Nginx with HTTP/2 Support on Ubuntu 16.04")
++ [How To Secure Nginx with Let's Encrypt on Ubuntu 16.04](https://www.digitalocean.com/community/tutorials/how-to-secure-nginx-with-let-s-encrypt-on-ubuntu-16-04 "How To Secure Nginx with Let's Encrypt on Ubuntu 16.04")
++ [How To Install Nginx on Ubuntu 16.04](https://www.digitalocean.com/community/tutorials/how-to-install-nginx-on-ubuntu-16-04 "How To Install Nginx on Ubuntu 16.04")
++ [SSL Server Test](https://www.ssllabs.com/ssltest/ "SSL Server Test")
++ [Cipherli.st: Strong Ciphers for Apache, nginx and Lighttpd](https://cipherli.st/ "Cipherli.st: Strong Ciphers for Apache, nginx and Lighttpd")
+
+[d-h]: http://zh.wikipedia.org/wiki/Diffie-Hellman "迪菲－赫尔曼密钥交换"
