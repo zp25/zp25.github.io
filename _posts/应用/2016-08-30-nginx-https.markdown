@@ -90,6 +90,8 @@ ssl_session_ticket_key previous.key;
 ~~~
 默认nginx开启session ticket。使用的密钥需要是48bytes随机数，并且只读取第一个配置文件。nginx没有自动修改密钥的策略，一定记得经常修改密钥。
 
+因为旧浏览器不支持session ticket，可选择同时开启session identifier和session ticket。
+
 # Server Name Indication
 要使nginx开启TLS/SNI，需nginx编译和运行时动态链接的OpenSSL支持TLS/SNI
 
