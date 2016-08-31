@@ -99,6 +99,5 @@ SSL测试可使用<https://www.ssllabs.com/ssltest/>，h2测试使用Chrome Dev 
 + [How To Secure Nginx with Let's Encrypt on Ubuntu 16.04](https://www.digitalocean.com/community/tutorials/how-to-secure-nginx-with-let-s-encrypt-on-ubuntu-16-04 "How To Secure Nginx with Let's Encrypt on Ubuntu 16.04")
 + [How To Install Nginx on Ubuntu 16.04](https://www.digitalocean.com/community/tutorials/how-to-install-nginx-on-ubuntu-16-04 "How To Install Nginx on Ubuntu 16.04")
 + [SSL Server Test](https://www.ssllabs.com/ssltest/ "SSL Server Test")
-+ [Cipherli.st: Strong Ciphers for Apache, nginx and Lighttpd](https://cipherli.st/ "Cipherli.st: Strong Ciphers for Apache, nginx and Lighttpd")
 
 [d-h]: http://zh.wikipedia.org/wiki/Diffie-Hellman "迪菲－赫尔曼密钥交换"
