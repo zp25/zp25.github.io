@@ -9,6 +9,8 @@ categories: 应用
 + [HSTS & DNSSEC](#hsts)
 + [OCSP](#ocsp)
   + [验证](#test)
++ [ALPN](#alpn)
++ [SNI](#sni)
 
 查看TLS内容，数字证书在TLS协商对称密钥时由服务器发送给浏览器，其中包含一把公钥，用于加密pre-master key。浏览器需要证明这把公钥确实属于服务器(协商过程明文进行，需防止中间人攻击)，数字证书就是证明方式。数字证书由CA颁发，是CA利用私钥将域名、服务器等相关信息加密后得到的。浏览器的证书管理器预先安装受信任CA的公钥，拿到数字证书后利用受信任CA的公钥解密得到携带的受认证的信息。
 
@@ -103,8 +105,26 @@ openssl ocsp -CAfile root.pem -issuer intermediate.pem -cert site.pem -no_nonce 
 ~~~
 获取信息和OCSP响应。
 
+# ALPN {#alpn}
+Application-Layer Protocol Negotiation是一个TLS扩展，用于在TLS握手阶段进行应用层协议协商。服务器和客户端应该具有利用任意应用层协议通信的能力，但因为预先为每个协议预定端口并配置所有服务器和客户端支持此协议的开销大，通常重用常用通信端口并通过额外机制协商使用的应用层协议。例如使用HTTP预留的80端口，并使用Upgrade头部机制协商。
+
+若使用HTTPS预留的443端口，也可以使用HTTP的Upgrade头部，但因为TLS握手本身就多了一个RTT，Upgrade协商还要多一个RTT效率不高，因此考虑将协商过程在TLS握手阶段完成，使用ALPN实现。在TLS握手阶段
+
++ ClientHello多加一个ProtocolNameList字段，包含支持的应用层协议
++ 服务器检查ProtocolNameList并在ServerHello中添加ProtocolName字段返回选择的协议
+
+主流浏览器已支持HTTP/2，但其他互联网设备升级支持HTTP/2还需要很长一段时间，因此在使用HTTP/2之前需要确认服务器和中间设备是否支持HTTP/2，HTTPS连接使用ALPN。
+
+NPN(Next Protocol Negotiation)是Google在SPDY中开发的一个扩展，IETF在NPN的基础上发布了ALPN。NPN已被废弃，应配置升级到ALPN，OpenSSL从1.0.2开始支持ALPN，Ubuntu 16.04可用。
+
+# SNI {#sni}
+Server Name Indication是一个TLS扩展，若一个IP为多个站点服务，这些站又有各自不同的TLS证书，SNI允许客户端在握手前指明要连接的主机名，服务器查询SNI主机名并选择适当的证书进行握手。
+
+主流浏览器已支持TLS/SNI，OpenSSL从0.9.8f开始支持。
+
 
 # Manual
++ [Web性能权威指南](https://book.douban.com/subject/25856314/ "Web性能权威指南")
 + [Let’s Encrypt](https://letsencrypt.org/ "Let’s Encrypt")
 + [How It Works](https://letsencrypt.org/how-it-works/ "How It Works")
 + [ACME Specification](https://github.com/letsencrypt/acme-spec "ACME Specification")
@@ -116,3 +136,5 @@ openssl ocsp -CAfile root.pem -issuer intermediate.pem -cert site.pem -no_nonce 
 + [Online Certificate Status Protocol-Wikipedia](https://en.wikipedia.org/wiki/Online_Certificate_Status_Protocol "Online Certificate Status Protocol")
 + [OCSP stapling-Wikipedia](https://en.wikipedia.org/wiki/OCSP_stapling "OCSP stapling")
 + [从无法开启 OCSP Stapling 说起](https://imququ.com/post/why-can-not-turn-on-ocsp-stapling.html "从无法开启 OCSP Stapling 说起")
++ [Application-Layer Protocol Negotiation-Wikipedia](https://en.wikipedia.org/wiki/Application-Layer_Protocol_Negotiation "Application-Layer Protocol Negotiation")
++ [Server Name Indication-Wikipedia](https://en.wikipedia.org/wiki/Server_Name_Indication "Server Name Indication")
