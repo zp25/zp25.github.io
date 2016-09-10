@@ -3,3 +3,7 @@ description: zp25's blog
 url: https://blog.zp25.ninja
 markdown: kramdown
 highlighter: rouge
+
+sass:
+  sass_dir: _sass
+  style: compressed
