@@ -1,5 +1,5 @@
 /** @type {Number} Cache版本 */
-const CACHE_VERSION = 0.1;
+const CACHE_VERSION = 0.2;
 
 /** @type {Object} 当前可用cacheName */
 const CURRENT_CACHES = {
@@ -8,7 +8,8 @@ const CURRENT_CACHES = {
 
 /** @type {Array}  */
 const OFFLINE_URL = [
-  '404.html'
+  '404.html',
+  '/assets/favicon.png',
 ];
 
 /** 安装，预先获取需缓存资源 */
