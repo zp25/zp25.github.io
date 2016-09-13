@@ -1,9 +1,16 @@
-name: Blog
-description: zp25's blog
-url: https://blog.zp25.ninja
 markdown: kramdown
 highlighter: rouge
 
 sass:
   sass_dir: _sass
   style: compressed
+
+collections:
+  my_categories:
+    output: true
+    permalink: /category/:name/
+
+# Custom
+name: Blog
+description: zp25's blog
+url: https://blog.zp25.ninja

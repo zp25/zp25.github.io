@@ -1,0 +1,13 @@
+---
+layout: default
+title: Category | zp25
+---
+
+<div class="main main--category">
+  <h1>Category</h1>
+  <ul class="list-group">
+    {% for category in site.my_categories %}
+    <li class="list-group__item"><a href="{{ category.url }}">{{ category.name }}</a></li>
+    {% endfor %}
+  </ul>
+</div>
