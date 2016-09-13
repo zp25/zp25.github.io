@@ -1,6 +1,14 @@
 {
   "name": "Blog | zp25",
+  "short_name": "Blog",
+  "description": "zp25's blog",
   "icons": [
+    {
+      "src": "/assets/icon@chrome_1x.png",
+      "sizes": "48x48",
+      "type": "image/png",
+      "density": 1.0
+    },
     {
       "src": "/assets/icon@chrome_2x.png",
       "sizes": "96x96",
@@ -22,5 +30,6 @@
   ],
   "start_url": "/index.html",
   "display": "standalone",
-  "orientation": "landscape"
+  "orientation": "landscape",
+  "background_color": "white"
 }
