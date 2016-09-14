@@ -29,7 +29,3 @@ function eventHandler(e) {
 document.addEventListener('DOMContentLoaded', function () {
   document.body.addEventListener('click', eventHandler);
 });
-
-window.onload = function() {
-  document.body.style.backgroundColor = '#f5f5f5';
-};
