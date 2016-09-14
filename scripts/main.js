@@ -7,9 +7,11 @@ if ('serviceWorker' in navigator) {
  * @param {Event} e 事件对象
  */
 function triggerNavigator(e) {
-  e.preventDefault();
+  if (navigator.standalone) {
+    e.preventDefault();
 
-  window.location = e.target.href;
+    window.location = e.target.href;
+  }
 }
 
 /**
@@ -27,3 +29,7 @@ function eventHandler(e) {
 document.addEventListener('DOMContentLoaded', function () {
   document.body.addEventListener('click', eventHandler);
 });
+
+window.onload = function() {
+  document.body.style.backgroundColor = '#f5f5f5';
+};
