@@ -7,7 +7,7 @@ title: Category | zp25
   <h1>Category</h1>
   <ul class="list-group">
     {% for category in site.my_categories %}
-    <li class="list-group__item"><a href="{{ category.url }}">{{ category.name }}</a></li>
+    <li class="list-group__item"><a href="{{ category.url }}" data-trigger="navigator">{{ category.name }}</a></li>
     {% endfor %}
   </ul>
 </div>

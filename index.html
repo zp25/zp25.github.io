@@ -8,7 +8,7 @@ title: Blog | zp25
   <ul class="list-group">
     {% for post in site.posts %}
     <li class="list-group__item">
-      <span class="item-date">{{ post.date | date_to_string }}</span> &raquo; <a href="{{ post.url }}">{{ post.title }}</a>
+      <span class="item-date">{{ post.date | date_to_string }}</span> &raquo; <a href="{{ post.url }}" data-trigger="navigator">{{ post.title }}</a>
     </li>
     {% endfor %}
   </ul>
