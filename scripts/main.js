@@ -24,6 +24,6 @@ function eventHandler(e) {
   }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', function () {
   document.body.addEventListener('click', eventHandler);
 });
