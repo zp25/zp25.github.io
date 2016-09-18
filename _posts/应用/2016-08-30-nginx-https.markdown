@@ -4,7 +4,7 @@ title:  nginx配置HTTPS服务器
 categories: 应用
 ---
 
-~~~
+~~~nginx
 server {
     listen 80 default_server;
     listen [::]:80 default_server;
@@ -42,6 +42,8 @@ server {
     add_header X-Frame-Options DENY;
     # 禁用浏览器的文件类型猜测
     add_header X-Content-Type-Options nosniff;
+    # CSP
+    add_header Content-Security-Policy "default-src 'self'; child-src 'none'; object-src 'none'; frame-ancestors 'none'";
 
     ssl_dhparam /etc/ssl/certs/dhparam.pem;
 }
@@ -58,11 +60,11 @@ server {
 # 性能优化
 TLS握手是CPU运算的集中阶段，减少握手能提高性能，有两种方式：长连接、Session Resumption。其中TLS会话恢复有两种策略
 
-Session Identifier，SSL2.0引入，server将握手协商的信息缓存并分配一个32bytes的Session ID，通过SeverHello发送给客户端。再次握手时客户端在ClientHello信息中添加Session ID，告诉服务器还记得之前协商的Cipher suite和密钥，若服务器能通过Session ID取出纪录，将无需重新计算密钥，并省去一个RTT。但因为服务器需要为每个打开的TLS链接缓存协商数据，可能消耗过多资源，也增加了管理复杂度。并且Session Identifier存储在服务区，分布式系统无法共用。
+Session Identifier，SSL2.0引入，server将握手协商的信息缓存并分配一个32bytes的Session ID，通过SeverHello发送给客户端。再次握手时客户端在ClientHello信息中添加Session ID，告诉服务器还记得之前协商的Cipher suite和密钥，若服务器能通过Session ID取出纪录，将无需重新计算密钥，并省去一个RTT。但因为服务器需要为每个打开的TLS链接缓存协商数据，可能消耗过多资源，也增加了管理复杂度。并且Session Identifier存储在服务器，分布式系统无法共用。
 
 Session Ticket，在TLS握手的最后阶段，服务器使用密钥将会话数据加密后发送给客户端，服务器无需再存储这些数据，客户端存储了协商数据和加密的会话纪录。再次握手时，客户端将会话纪录包含在SessionTicket扩展中，通过ClientHello发送给服务器。若服务器能解密得到会话数据，可重用。
 
-~~~
+~~~nginx
 # 长连接70s超时
 keepalive_timeout 70;
 
