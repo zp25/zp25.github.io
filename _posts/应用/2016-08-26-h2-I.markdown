@@ -136,5 +136,6 @@ Server Name Indication是一个TLS扩展，若一个IP为多个站点服务，�
 + [Online Certificate Status Protocol-Wikipedia](https://en.wikipedia.org/wiki/Online_Certificate_Status_Protocol "Online Certificate Status Protocol")
 + [OCSP stapling-Wikipedia](https://en.wikipedia.org/wiki/OCSP_stapling "OCSP stapling")
 + [从无法开启 OCSP Stapling 说起](https://imququ.com/post/why-can-not-turn-on-ocsp-stapling.html "从无法开启 OCSP Stapling 说起")
++ [The case for “OCSP Must-Staple”](https://www.grc.com/revocation/ocsp-must-staple.htm "The case for “OCSP Must-Staple”")
 + [Application-Layer Protocol Negotiation-Wikipedia](https://en.wikipedia.org/wiki/Application-Layer_Protocol_Negotiation "Application-Layer Protocol Negotiation")
 + [Server Name Indication-Wikipedia](https://en.wikipedia.org/wiki/Server_Name_Indication "Server Name Indication")
