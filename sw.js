@@ -1,5 +1,5 @@
 /** @type {Number} Cache版本 */
-const CACHE_VERSION = 0.2;
+const CACHE_VERSION = 0.3;
 
 /** @type {Object} 当前可用cacheName */
 const CURRENT_CACHES = {
@@ -34,28 +34,28 @@ self.addEventListener('activate', event => {
   );
 });
 
-/** 代理，部分浏览器暂不支持navigation request */
-self.addEventListener('fetch', event => {
+self.addEventListener('fetch', (event) => {
   event.respondWith(
-    caches.match(event.request).then(res => {
+    fetch(event.request).then((res) => {
+      if (!res.ok) {
+        // 非网络问题，返还相应错误
+        return new Response('Response Error', {
+          status: res.status,
+          statusText: res.statusText,
+        });
+      }
+
+      return caches.open(CURRENT_CACHES.offline).then((cache) => {
+        cache.put(event.request, res.clone());
+
+        return res;
+      })
+    }).catch(() => caches.match(event.request).then((res) => {
       if (res) {
         return res;
       }
 
-      return fetch(event.request).then(res => {
-        if (!res.ok) {
-          return new Response('Response Error', {
-            status: res.status,
-            statusText: res.statusText,
-          });
-        }
-
-        return caches.open(CURRENT_CACHES.offline).then(cache => {
-          cache.put(event.request, res.clone());
-
-          return res;
-        })
-      }).catch(() => caches.match('404.html'));
-    })
+      return caches.match('404.html');
+    }))
   )
 });
