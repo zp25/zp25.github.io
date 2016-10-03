@@ -7,7 +7,6 @@ categories: 工具
 + [Code Splitting](#splitting)
 + [CommonsChunkPlugin](#common)
 + [DllPlugin & DllReferencePlugin](#dll)
-  + [拆分块方法比较](#compare)
 + [比较](#compare)
 
 代码拆分，其他还包括将inline资源以文件导出使用ExtractTextPlugin
