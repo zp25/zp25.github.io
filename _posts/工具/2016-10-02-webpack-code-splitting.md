@@ -29,21 +29,24 @@ categories: 工具
 }
 
 // CommonJs
-require.ensure(["module-a", "module-b"], function(require) {
-  var a = require("module-a");
+require.ensure(["module"], function(require) {
+  var a = require("module");
   // ...
 });
 
 // AMD
-require(["module-a", "module-b"], function(a, b) {
+require(["module"], function(a) {
   // ...
 });
 
-// 暂不支持es6模块，webpack 2.0.0将支持
+// es6，webpack 2支持
+System.import("./module").then((module) => {
+  ...
+}).catch(...);
 ~~~
-拆分点在依赖导入位置，CommonJs和AMD有不同的定义拆分点的方式
+拆分点在依赖导入位置，CommonJs、AMD和es6有不同的定义拆分点的方式
 
-例中module-a, module-b将被拆分为一个文件，名称为1.chunk.js；chunks根据配置中target属性依照不同策略加载，如`target: 'web'`，1.chunk.js将以`webpackJsonp()`包裹，bundle.js在需要依赖模块时通过jsonp加载；`require.ensure`可传入第三个参数，必须是str，若两个拆分点有相同的第三参数会使用相同的chunk
+例中module将被拆分为一个文件，名称为1.chunk.js；chunks根据配置中target属性依照不同策略加载，如`target: 'web'`，1.chunk.js将以`webpackJsonp()`包裹，bundle.js在需要依赖模块时通过jsonp加载；`require.ensure`可传入第三个参数，必须是str，若两个拆分点有相同的第三参数会使用相同的chunk
 
 ~~~javascript
 require.ensure(["./file"], function(require) {
@@ -222,3 +225,4 @@ DllPlugin，需要两个配置文件，但大项目开发过程中可节省打�
 + [DllPlugin](http://webpack.github.io/docs/list-of-plugins.html#dllplugin "DllPlugin")
 + [DllReferencePlugin](http://webpack.github.io/docs/list-of-plugins.html#dllreferenceplugin "DllReferencePlugin")
 + [Optimizing Webpack build times and improving caching with DLL bundles](https://robertknight.github.io/posts/webpack-dll-plugins/ "Optimizing Webpack build times and improving caching with DLL bundles")
++ [What's new in webpack 2](https://gist.github.com/sokra/27b24881210b56bbaff7 "What's new in webpack 2")
