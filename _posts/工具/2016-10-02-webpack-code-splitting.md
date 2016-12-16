@@ -40,7 +40,9 @@ require(["module"], function(a) {
 });
 
 // es6，webpack 2支持
-System.import("./module").then((module) => {
+// webpack 2.1.0-beta.28开始使用import()替代System.import()
+// https://github.com/webpack/webpack/releases/tag/v2.1.0-beta.28
+import("./module").then((module) => {
   ...
 }).catch(...);
 ~~~
