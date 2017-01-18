@@ -1,0 +1,80 @@
+---
+layout: post
+title:  Base64解码
+categories: 应用
+---
+
+Base64编码将二进制数据转换为ASCII字符串，常用于在存储和传输文本数据的媒介上处理二进制数据，例如使用內联方式向HTML文件中添加图片
+
+Base64使用64个可打印的ASCII字符`[A-Za-z0-9+/]`编码数据，`=`用作后缀；因为`2^6=64`，会将字节流拆分为6bit的单元进行转码；编码时每次读取3bytes数据，存入24bit的缓存，先读入的字节存于高位；然后将24bit拆分为4个6bit单元，并映射到对应字符；字符索引
+
++ A-Z，索引0-25
++ a-z，索引26-51
++ 0-9，索引52-61
++ +，索引61
++ /，索引62
+
+例如`Man`二进制`01001101 01100001 01101110`，拆分为4个6bit单元
+
++ `010011`，19，对应T
++ `010110`，22，对应W
++ `000101`，5，对应F
++ `101110`，46，对应u
+
+`Man`将被编码为`TWFu`；若数据最后不足3bytes，使用0填充并在编码时使用`=`替换
+
++ 若剩1byte，编码时高位两个单元正常编码，剩余使用`==`替换
++ 若剩2bytes，编码时高位三个单元正常编码，剩余使用`=`替换
+
+例如`A`二进制`01000001`，读入缓存时使用0填充低位补足24bit；编码时拆分为
+
++ `010000`，对应Q
++ `010000`，对应Q
+
+`A`将被编码为`QQ==`；Base64编码的数据比原数据大至少1/3，因为每3bytes被编码为4个ASCII字符，占用4bytes，另外还可能包含后缀字符`=`，HTML使用內联图片时需考虑图片大小
+
+# js解码Base64
+js有编码和解码Base64的函数
+
++ `btoa(stringToEncode)`，使用Base64编码字符串
++ `atob(encodedData)`，解码Base64字符串
+
+`btoa()`编码时将每个字符作为一个字节处理，但是DOMString是UTF-16编码，若字符Unicode编码超过0xFF，使用`btoa()`编码将抛出InvalidCharacterError错误；解决办法可以将字符串escape处理，例如使用`encodeURIComponent()`将字符依照utf-8编码拆分为多个独立字节，然后进行Base64编码；此时解码使用逆过程
+
+~~~javascript
+// https://developer.mozilla.org/en-US/docs/Web/API/WindowBase64/Base64_encoding_and_decoding
+
+function b64EncodeUnicode(str) {
+  return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, function(match, p1) {
+    return String.fromCharCode('0x' + p1);
+  }));
+}
+
+function b64DecodeUnicode(str) {
+  return decodeURIComponent(Array.prototype.map.call(atob(str), function(c) {
+    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+  }).join(''));
+}
+~~~
+
+还可以转化为二进制操作；利用TypedArray将`btoa()`解码的字符串以二进制存储，然后使用TextDecoder对象得到解码的字符串
+
+~~~javascript
+function b64DecodeUnicode(str, utfLabel = 'utf-16be') {
+  const charCodeArr = Array.from(atob(str)).map(c => c.charCodeAt(0));
+
+  const buffer = new ArrayBuffer(charCodeArr.length);
+  const uint8 = new Int8Array(buffer);
+
+  uint8.set(charCodeArr);
+
+  return new TextDecoder(utfLabel).decode(uint8);
+}
+~~~
+例如需要解码一个base64编码的utf-16字符串'T2BZfQ=='，base64解码得到charCodeArr为`[79, 96, 89, 125]`；将其转化为TypedArray，因为base64解码时将高位字节存在charCodeArr索引低位，需使用utf-16 big ending转化，最后得到字符串'你好'
+
+
+# 参看
++ [Base64-维基百科](https://zh.wikipedia.org/wiki/Base64 "Base64")
++ [Base64 encoding and decoding](https://developer.mozilla.org/en-US/docs/Web/API/WindowBase64/Base64_encoding_and_decoding "Base64 encoding and decoding")
++ [How to convert an Uint8Array to string in Javascript](http://ourcodeworld.com/articles/read/164/how-to-convert-an-uint8array-to-string-in-javascript "How to convert an Uint8Array to string in Javascript")
