@@ -10,7 +10,7 @@ function triggerNavigator(e) {
   if (navigator.standalone) {
     e.preventDefault();
 
-    window.location = e.target.href;
+    location.href = e.target.href;
   }
 }
 
@@ -26,6 +26,7 @@ function eventHandler(e) {
   }
 }
 
-document.addEventListener('DOMContentLoaded', function () {
-  document.body.addEventListener('click', eventHandler);
+document.addEventListener('DOMContentLoaded', () => {
+  // 捕获全局点击事件
+  document.body.addEventListener('click', eventHandler, false);
 });
