@@ -58,8 +58,8 @@ img {
   text-align: justify;
   width: 42em;
   max-width: 100%;
-  padding: 0 8px;
-  margin: 2em auto;
+  padding: 2em 8px;
+  margin: 0 auto;
   line-height: 1.5em;
 
   .header {
@@ -115,22 +115,22 @@ img {
     margin-top: 2em;
     overflow: hidden;
 
-    .contact {
-      float: left;
-      margin-right: 3em;
-
-      a {
-        color: #8085C1;
+    .sw {
+      .sw__state {
+        &.sw__state--ready {
+          color: green;
+        }
+        &.sw__state--error {
+          color: red;
+        }
       }
     }
 
-    .rss {
-      margin-top: 1.1em;
-      margin-right: -.2em;
-      float: right;
+    .contact {
+      list-style: none;
 
-      img {
-        border: 0;
+      a {
+        color: #8085C1;
       }
     }
   }

@@ -7,6 +7,7 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="white">
   <meta name="format-detection" content="telephone=no">
+  <meta name="format-detection" content="email=no">
   <title>{{ page.title }}</title>
   <!-- app icon -->
   <link rel="apple-touch-icon" sizes="120x120" href="/assets/icon@iphone.png">
@@ -25,29 +26,32 @@
   <link rel="alternate" type="application/atom+xml" href="feed.xml" title="feed">
   <!-- canonical -->
   <link rel="canonical" href="{{ site.url }}{{ page.url }}">
+  <!-- scripts -->
+  <script defer src="/scripts/main.js"></script>
 </head>
 
 <body>
   <div class="site">
-    <div class="header">
+    <header class="header">
       <h1 class="title"><a class="anchor" href="/" data-trigger="navigator">{{ site.name }}</a></h1>
       <a class="anchor extra" href="/index.html" data-trigger="navigator">home</a>
       <a class="anchor extra" href="/category.html" data-trigger="navigator">category</a>
-    </div>
-    {{ content }}
-    <div class="footer">
-      <div class="contact">
-        <p>
-          <a href="feed.xml">feed: rss 2.0</a>
-          <br />
-          <a href="https://github.com/zp25">github.com/zp25</a>
-          <br />
-          <a href="mailto:zebrap25@gmail.com">zebrap25@gmail.com</a>
-        </p>
-      </div>
-    </div>
-  </div>
+    </header>
 
-  <script src="/scripts/main.js"></script>
+    {{ content }}
+
+    <footer class="footer">
+      <p class="sw">
+        service worker:
+        <span class="sw__state">...</span>
+      </p>
+
+      <ul class="contact">
+        <li><a href="feed.xml">feed: rss 2.0</a></li>
+        <li><a href="https://github.com/zp25">github.com/zp25</a></li>
+        <li><a href="mailto:zebrap25@gmail.com">zebrap25@gmail.com</a></li>
+      </ul>
+    </footer>
+  </div>
 </body>
 </html>
