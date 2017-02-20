@@ -53,5 +53,3 @@ EFI负责加电自检(POST)、连系操作系统以及提供连接操作系统�
 [uefi-forum]: http://www.uefi.org/ "Unified Extensible Firmware Interface Forum"
 [oem]: http://zh.wikipedia.org/wiki/OEM "贴牌生产"
 [fsf]: http://www.fsf.org/campaigns/ "Free Software Foundation - Current campaigns"
-
-由The original uploader was <a href="//en.wikipedia.org/wiki/" class="extiw" title="wikipedia:">英文维基百科</a>的<a href="//en.wikipedia.org/wiki/User:Kbolino" class="extiw" title="wikipedia:User:Kbolino">Kbolino</a> - Transferred from&nbsp;<span class="plainlinks"><a class="external text" href="http://en.wikipedia.org">en.wikipedia</a></span>&nbsp;to Commons. Transfer was stated to be made by <a href="//commons.wikimedia.org/wiki/User:Kbolino" title="User:Kbolino">User:Kbolino</a>.，<a href="http://creativecommons.org/licenses/by-sa/2.5" title="Creative Commons Attribution-Share Alike 2.5">CC BY-SA 2.5</a>，https://commons.wikimedia.org/w/index.php?curid=3036588
