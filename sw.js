@@ -1,14 +1,16 @@
 /** @type {String} Cache版本 */
-const CACHE_VERSION = '0.5';
+const CACHE_VERSION = '0.6';
 
 /** @type {Object} 当前可用cacheName */
 const CURRENT_CACHES = {
   offline: `offline-v${CACHE_VERSION}`,
 };
 
+const pageNotFound = '404.html';
+
 /** @type {Array} 默认缓存 */
 const OFFLINE_URL = [
-  '404.html',
+  pageNotFound,
   '/assets/favicon.png',
 ];
 
@@ -50,11 +52,11 @@ self.addEventListener('fetch', (event) => {
           return res;
         })
       }).catch((err) => caches.match(event.request).then((res) => {
-        if (res) {
-          return res;
+        if (!res) {
+          return caches.match(pageNotFound);
         }
 
-        return caches.match('404.html');
+        return res;
       }))
     );
   } else {
