@@ -1,17 +1,22 @@
+---
+---
+
 /** @type {String} Cache版本 */
-const CACHE_VERSION = '0.6';
+const CACHE_VERSION = '0.7';
 
 /** @type {Object} 当前可用cacheName */
 const CURRENT_CACHES = {
   offline: `offline-v${CACHE_VERSION}`,
 };
 
+const polyfill = '/scripts/polyfill.min.js';
 const pageNotFound = '404.html';
 
 /** @type {Array} 默认缓存 */
 const OFFLINE_URL = [
   pageNotFound,
   '/assets/favicon.png',
+  polyfill,
 ];
 
 // 安装，预先获取需缓存资源
