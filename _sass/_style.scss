@@ -32,6 +32,12 @@ p {
   margin: 1em 0;
 }
 
+figcaption {
+  color: #aaa;
+  font-size: 80%;
+  line-height: 1.5;
+}
+
 a {
   color: #00a;
 
@@ -116,13 +122,24 @@ img {
     overflow: hidden;
 
     .sw {
-      .sw__state {
-        &.sw__state--ready {
-          color: green;
-        }
-        &.sw__state--error {
-          color: red;
-        }
+      &::after {
+        content: '';
+      }
+
+      &.sw--done::after {
+        content: ' sw';
+        color: green;
+      }
+      &.sw--waiting::after {
+        content: ' sw';
+        color: orange;
+      }
+      &.sw--error::after {
+        content: ' sw';
+        color: red;
+      }
+      &.sw--no-support::after {
+        content: ' No support';
       }
     }
 
