@@ -32,10 +32,15 @@ p {
   margin: 1em 0;
 }
 
-figcaption {
-  color: #aaa;
-  font-size: 80%;
-  line-height: 1.5;
+figure {
+  margin: 1em 0;
+
+  figcaption {
+    color: #aaa;
+    font-size: 80%;
+    line-height: 1.5;
+    margin: 1em 0;
+  }
 }
 
 a {

@@ -42,7 +42,12 @@ GPT使用LBA，以64位Windows为例(每个逻辑块512bytes)
 + LBA -2，备份分区表
 + LBA -1，备份GPT头，位于最后一个逻辑块
 
-![GUID Partition Table Scheme - By The original uploader was Kbolino at English Wikipedia - Transferred from en.wikipedia to Commons. Transfer was stated to be made by User:Kbolino., CC BY-SA 2.5, https://commons.wikimedia.org/w/index.php?curid=3036588][gpt]
+<figure>
+  <a href="/assets/GUID_Partition_Table_Scheme.svg" class="progressive replace" data-trigger="default" data-alt="GUID Partition Table Scheme" style="width: 400px; height: 550px;">
+    <img src="/assets/GUID_Partition_Table_Scheme_preview.jpg" alt="GUID Partition Table Scheme" class="progressive__img progressive__img--thumbnail">
+  </a>
+  <figcaption>GUID Partition Table Scheme - By The original uploader was Kbolino at English Wikipedia - Transferred from en.wikipedia to Commons. Transfer was stated to be made by User:Kbolino., CC BY-SA 2.5, https://commons.wikimedia.org/w/index.php?curid=3036588</figcaption>
+</figure>
 
 GPT保留传统MBR，称为保护MBR，用于防止不支持GPT的硬盘管理工具错误识别并破坏硬盘中的数据。在支持从GPT启动的操作系统中，这里也用于存储第一阶段的启动代码，并且其中只有一个标识为0xEE的分区，以此来表示使用GPT分区表。在使用MBR/GPT混合分区表的硬盘中，MBR也用于存储GPT分区表的部分分区(通常前4个)以运行不支持GPT的操作系统，Boot Camp使用这种方式启动Windows。
 
@@ -66,5 +71,3 @@ GPT分区表结构简单，每个分区信息占128bytes，每个字节具体含
 + [GPT-维基百科](http://zh.wikipedia.org/wiki/%E5%85%A8%E5%B1%80%E5%94%AF%E4%B8%80%E6%A8%99%E8%AD%98%E5%88%86%E5%8D%80%E8%A1%A8 "全局唯一标识分区表")
 
 [lba]: http://zh.wikipedia.org/wiki/%E9%82%8F%E8%BC%AF%E5%8D%80%E5%A1%8A%E4%BD%8D%E5%9D%80 "逻辑区块地址"
-
-[gpt]: /assets/GUID_Partition_Table_Scheme.svg "GUID Partition Table Scheme - By The original uploader was Kbolino at English Wikipedia - Transferred from en.wikipedia to Commons. Transfer was stated to be made by User:Kbolino., CC BY-SA 2.5, https://commons.wikimedia.org/w/index.php?curid=3036588"
