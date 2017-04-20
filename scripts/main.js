@@ -1,6 +1,3 @@
----
----
-
 /**
  * service worker管理
  * @return {Object}
@@ -142,12 +139,20 @@ const inView = item => {
  * @param {function} done - 图片加载完成回调
  */
 const lazyload = (data, done) => {
-  const { src = 'error.jpg', className, ...dataset } = data;
+  // const { src = 'error.jpg', className, ...dataset } = data;
+  const { src = 'error.jpg', className } = data;
 
   const img = new Image();
 
-  Object.keys(dataset).forEach((key) => {
-    img[key] = dataset[key];
+  // Object.keys(dataset).forEach((key) => {
+  //   img[key] = dataset[key];
+  // });
+  Object.keys(data).forEach((key) => {
+    if (key === 'src' || key === 'className') {
+      return;
+    }
+
+    img[key] = data[key];
   });
 
   img.src = src;
