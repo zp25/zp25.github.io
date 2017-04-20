@@ -1,6 +1,3 @@
----
----
-
 /** @type {String} Cache版本 */
 const CACHE_VERSION = '0.7';
 
