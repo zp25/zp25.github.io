@@ -93,7 +93,7 @@ const dispatch = handlers => (e) => {
  */
 const createHandlers = () => {
   /**
-   * 导航事件处理
+   * 导航，新开链接
    * @param {Event} e - 事件对象
    */
   const navigator = (e) => {
