@@ -4,11 +4,16 @@ title:  encode URI
 categories: 应用
 ---
 
-+ [URI](#uri)
-+ [Form](#form)
-  + [application/x-www-form-urlencoded](#str)
-  + [multipart/form-data](#binary)
-+ [空格应该编码为 + 还是 %20](#space)
+<ul>
+  <li><a href="#uri" data-trigger="manu">URI</a></li>
+  <li><a href="#form" data-trigger="manu">Form</a>
+    <ul>
+      <li><a href="#str" data-trigger="manu">application/x-www-form-urlencoded</a></li>
+      <li><a href="#binary" data-trigger="manu">multipart/form-data</a></li>
+    </ul>
+  </li>
+  <li><a href="#space" data-trigger="manu">空格应该编码为 + 还是 %20</a></li>
+</ul>
 
 具体
 

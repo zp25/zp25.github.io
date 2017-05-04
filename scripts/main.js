@@ -97,10 +97,25 @@ const createHandlers = () => {
    * @param {Event} e - 事件对象
    */
   const navigator = (e) => {
-    if (navigator.standalone) {
-      e.preventDefault();
+    e.preventDefault();
 
-      location.href = e.target.href;
+    location.href = e.target.href;
+  };
+
+  /**
+   * 页内导航
+   * @param {Event} e - 事件对象
+   */
+  const manu = (e) => {
+    e.preventDefault();
+
+    const hash = e.target.hash;
+    const target = document.querySelector(hash);
+
+    if (target) {
+      // 模拟hash跳转
+      history.pushState({ hash }, '', hash);
+      document.querySelector(hash).scrollIntoView();
     }
   };
 
@@ -114,6 +129,7 @@ const createHandlers = () => {
 
   return {
     navigator,
+    manu,
     prevent,
   };
 };

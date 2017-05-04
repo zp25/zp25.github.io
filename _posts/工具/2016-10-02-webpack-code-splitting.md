@@ -4,10 +4,12 @@ title: Webpack代码拆分
 categories: 工具
 ---
 
-+ [Code Splitting](#splitting)
-+ [CommonsChunkPlugin](#common)
-+ [DllPlugin & DllReferencePlugin](#dll)
-+ [比较](#compare)
+<ul>
+  <li><a href="#splitting" data-trigger="manu">Code Splitting</a></li>
+  <li><a href="#common" data-trigger="manu">CommonsChunkPlugin</a></li>
+  <li><a href="#dll" data-trigger="manu">DllPlugin &amp; DllReferencePlugin</a></li>
+  <li><a href="#compare" data-trigger="manu">比较</a></li>
+</ul>
 
 代码拆分，其他还包括将inline资源以文件导出使用ExtractTextPlugin
 
