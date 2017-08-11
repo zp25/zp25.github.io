@@ -5,16 +5,20 @@ categories: 应用
 ---
 
 <ul>
-  <li><a href="#letsencrypt" data-trigger="manu">Let’s Encrypt: How It Works</a></li>
-  <li><a href="#certbot" data-trigger="manu">Certbot</a></li>
-  <li><a href="#hsts" data-trigger="manu">HSTS &amp; DNSSEC</a></li>
-  <li><a href="#ocsp" data-trigger="manu">OCSP</a>
+  <li><a href="#letsencrypt" data-trigger="menu">Let’s Encrypt: How It Works</a></li>
+  <li><a href="#certbot" data-trigger="menu">Certbot</a>
     <ul>
-      <li><a href="#test" data-trigger="manu">验证</a></li>
+      <li><a href="#webroot" data-trigger="menu">Webroot</a></li>
     </ul>
   </li>
-  <li><a href="#alpn" data-trigger="manu">ALPN</a></li>
-  <li><a href="#sni" data-trigger="manu">SNI</a></li>
+  <li><a href="#hsts" data-trigger="menu">HSTS &amp; DNSSEC</a></li>
+  <li><a href="#ocsp" data-trigger="menu">OCSP</a>
+    <ul>
+      <li><a href="#test" data-trigger="menu">验证</a></li>
+    </ul>
+  </li>
+  <li><a href="#alpn" data-trigger="menu">ALPN</a></li>
+  <li><a href="#sni" data-trigger="menu">SNI</a></li>
 </ul>
 
 查看TLS内容，数字证书在TLS协商对称密钥时由服务器发送给浏览器，其中包含一把公钥，用于加密pre-master key。浏览器需要证明这把公钥确实属于服务器(协商过程明文进行，需防止中间人攻击)，数字证书就是证明方式。数字证书由CA颁发，是CA利用私钥将域名、服务器等相关信息加密后得到的。浏览器的证书管理器预先安装受信任CA的公钥，拿到数字证书后利用受信任CA的公钥解密得到携带的受认证的信息。
@@ -40,6 +44,7 @@ agent需要完成证明方式中的一种，例如按要求将资源ed98使用`h
 # Certbot {#certbot}
 Certbot client，之前称为Let's Encrypt Client，是推荐使用的agent工具。Certbot支持许多插件，能够从Let's Encrypt获取证书，部分插件还可以自动安装证书(配置和开启HTTPS服务)，例如Apache插件。
 
+## Webroot {#webroot}
 Nginx插件还在开发阶段，可以选择Webroot插件用于获取证书，需手动安装证书。使用Webroot插件需要服务器支持访问隐藏文件夹中的资源，因为Webroot通过在`${webroot-path}/.well-known/acme-challenge`目录中添加临时文件进行Let’s Encrypt CA对服务器管理域名的认证。
 
 ~~~bash

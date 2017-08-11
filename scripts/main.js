@@ -106,7 +106,7 @@ const createHandlers = () => {
    * 页内导航
    * @param {Event} e - 事件对象
    */
-  const manu = (e) => {
+  const menu = (e) => {
     e.preventDefault();
 
     const hash = e.target.hash;
@@ -129,7 +129,7 @@ const createHandlers = () => {
 
   return {
     navigator,
-    manu,
+    menu,
     prevent,
   };
 };

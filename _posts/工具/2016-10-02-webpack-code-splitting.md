@@ -5,10 +5,10 @@ categories: 工具
 ---
 
 <ul>
-  <li><a href="#splitting" data-trigger="manu">Code Splitting</a></li>
-  <li><a href="#common" data-trigger="manu">CommonsChunkPlugin</a></li>
-  <li><a href="#dll" data-trigger="manu">DllPlugin &amp; DllReferencePlugin</a></li>
-  <li><a href="#compare" data-trigger="manu">比较</a></li>
+  <li><a href="#splitting" data-trigger="menu">Code Splitting</a></li>
+  <li><a href="#common" data-trigger="menu">CommonsChunkPlugin</a></li>
+  <li><a href="#dll" data-trigger="menu">DllPlugin &amp; DllReferencePlugin</a></li>
+  <li><a href="#compare" data-trigger="menu">比较</a></li>
 </ul>
 
 代码拆分，其他还包括将inline资源以文件导出使用ExtractTextPlugin

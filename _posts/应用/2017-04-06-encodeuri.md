@@ -5,14 +5,14 @@ categories: 应用
 ---
 
 <ul>
-  <li><a href="#uri" data-trigger="manu">URI</a></li>
-  <li><a href="#form" data-trigger="manu">Form</a>
+  <li><a href="#uri" data-trigger="menu">URI</a></li>
+  <li><a href="#form" data-trigger="menu">Form</a>
     <ul>
-      <li><a href="#str" data-trigger="manu">application/x-www-form-urlencoded</a></li>
-      <li><a href="#binary" data-trigger="manu">multipart/form-data</a></li>
+      <li><a href="#str" data-trigger="menu">application/x-www-form-urlencoded</a></li>
+      <li><a href="#binary" data-trigger="menu">multipart/form-data</a></li>
     </ul>
   </li>
-  <li><a href="#space" data-trigger="manu">空格应该编码为 + 还是 %20</a></li>
+  <li><a href="#space" data-trigger="menu">空格应该编码为 + 还是 %20</a></li>
 </ul>
 
 具体
