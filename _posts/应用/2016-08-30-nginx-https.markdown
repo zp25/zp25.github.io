@@ -8,7 +8,9 @@ categories: 应用
 server {
     listen 80 default_server;
     listen [::]:80 default_server;
+
     server_name example.com www.example.com;
+
     return 301 https://$server_name$request_uri;
 }
 
@@ -55,7 +57,16 @@ server {
 + `ssl_ecdh_curve auto;`，Specifies a curve for ECDHE ciphers
   + `auto`，默认，OpenSSL 1.0.2使用其内建值，低版本使用prime256v1
 
-其他设置
+nginx安全配置参考了<https://cipherli.st/>。SSL测试可使用<https://www.ssllabs.com/ssltest/>，h2测试使用Chrome Dev Tools即可。
+
+# Diffie-Hellman参数
+[迪菲－赫尔曼密钥交换协议][d-h]可以让双方在完全没有对方任何预先信息的条件下通过不安全信道创建起一个密钥，在使用明文传输的TLS握手阶段提供安全通信。
+
+~~~bash
+sudo openssl dhparam -out /etc/ssl/certs/dhparam.pem 2048
+~~~
+
+配置nginx，进入配置目录snippets，创建TLS配置的可重用块
 
 # 性能优化
 TLS握手是CPU运算的集中阶段，减少握手能提高性能，有两种方式：长连接、Session Resumption。其中TLS会话恢复有两种策略
@@ -109,3 +120,9 @@ TLS SNI support enabled
 # Manual
 + [Configuring HTTPS servers](http://nginx.org/en/docs/http/configuring_https_servers.html "Configuring HTTPS servers")
 + [Cipherli.st: Strong Ciphers for Apache, nginx and Lighttpd](https://cipherli.st/ "Cipherli.st: Strong Ciphers for Apache, nginx and Lighttpd")
++ [How To Set Up Nginx with HTTP/2 Support on Ubuntu 16.04](https://www.digitalocean.com/community/tutorials/how-to-set-up-nginx-with-http-2-support-on-ubuntu-16-04 "How To Set Up Nginx with HTTP/2 Support on Ubuntu 16.04")
++ [How To Secure Nginx with Let's Encrypt on Ubuntu 16.04](https://www.digitalocean.com/community/tutorials/how-to-secure-nginx-with-let-s-encrypt-on-ubuntu-16-04 "How To Secure Nginx with Let's Encrypt on Ubuntu 16.04")
++ [How To Install Nginx on Ubuntu 16.04](https://www.digitalocean.com/community/tutorials/how-to-install-nginx-on-ubuntu-16-04 "How To Install Nginx on Ubuntu 16.04")
++ [SSL Server Test](https://www.ssllabs.com/ssltest/ "SSL Server Test")
+
+[d-h]: http://zh.wikipedia.org/wiki/Diffie-Hellman "迪菲－赫尔曼密钥交换"

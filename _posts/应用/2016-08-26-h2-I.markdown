@@ -6,11 +6,7 @@ categories: 应用
 
 <ul>
   <li><a href="#letsencrypt" data-trigger="menu">Let’s Encrypt: How It Works</a></li>
-  <li><a href="#certbot" data-trigger="menu">Certbot</a>
-    <ul>
-      <li><a href="#webroot" data-trigger="menu">Webroot</a></li>
-    </ul>
-  </li>
+
   <li><a href="#hsts" data-trigger="menu">HSTS &amp; DNSSEC</a></li>
   <li><a href="#ocsp" data-trigger="menu">OCSP</a>
     <ul>
@@ -33,7 +29,7 @@ Let’s Encrypt和ACME(Automated Certificate Management Environment)协议(通�
 + 要求agent提供域名的DNS
 + 要求agent利用此域名定位一个资源
 
-agent需要完成证明方式中的一种，例如按要求将资源ed98使用`https://example.com/8303`定位来证明agent管理着`example.com`。agent还需要将公钥交给Let’s Encrypt CA。为了证明收到的公钥确实属于agent，会生成一个随机量，要求agent使用私钥加密并返回。若Let’s Encrypt CA可以访问到资源，且利用公钥解密得到随机量，通过证明，称密钥对为'authorized key pair' for example.com，用于后续安全通信。
+agent需要完成证明方式中的一种，例如按要求将资源ed98使用`https://example.com/8303`定位来证明agent管理着`example.com`。agent还需要将公钥交给Let’s Encrypt CA。为了证明收到的公钥确实属于agent，Let’s Encrypt会生成一个随机量，要求agent使用私钥加密并返回。若Let’s Encrypt CA可以访问到资源，且利用公钥解密得到随机量，通过证明，称密钥对为'authorized key pair' for example.com，用于后续安全通信。
 
 完成证明后，对域名的证书操作将非常简单，agent只需将管理信息使用私钥加密后发送给Let’s Encrypt CA即可。
 
@@ -41,26 +37,7 @@ agent需要完成证明方式中的一种，例如按要求将资源ed98使用`h
 
 撤销证书过程类似，agent利用authorized key pair的私钥加密需撤销的证书后发送给Let’s Encrypt CA。证书撤销后CA将撤销信息发送到normal revocation channels(如CRLs, OCSP)，用于浏览器等更新。
 
-# Certbot {#certbot}
-Certbot client，之前称为Let's Encrypt Client，是推荐使用的agent工具。Certbot支持许多插件，能够从Let's Encrypt获取证书，部分插件还可以自动安装证书(配置和开启HTTPS服务)，例如Apache插件。
-
-## Webroot {#webroot}
-Nginx插件还在开发阶段，可以选择Webroot插件用于获取证书，需手动安装证书。使用Webroot插件需要服务器支持访问隐藏文件夹中的资源，因为Webroot通过在`${webroot-path}/.well-known/acme-challenge`目录中添加临时文件进行Let’s Encrypt CA对服务器管理域名的认证。
-
-~~~bash
-sudo apt-get install letsencrypt
-~~~
-建议通过包管理器安装certbot，ubuntu中certbot包使用旧名称letsencrypt。
-
-Let's Encrypt证书有效期为90天，可使用`certbot renew`命令续期证书。Let's Encrypt建议证书每60天续期一次。运行`certbot renew`将自动续期所有之前获取的将在30天内过期的证书，默认使用之前创建证书时使用的配置参数，也可重新传入参数修改，修改的参数将被记录，用于下次更新时使用。renew可设置钩子(hooks)
-
-~~~bash
-certbot renew --standalone --pre-hook "systemctl stop nginx"
-  --post-hook "systemctl start nginx"
-~~~
-例如修改为使用standalone插件，通过hooks管理nginx而无需手动控制。ubuntu中使用letsencrypt替换certbot命令运行。
-
-certbot目前还不能自动完成证书续期，但可通过crontab完成。因为命令仅续期30天内将过期的证书，使用crontab是安全的，可以尝试定时每周或每天运行更新命令。`--force-renew`参数可忽略30天过期的限制，强制续期所有证书，但不适合每天运行，容易达到Let's Encrypt更新证书的次数限制。
+Certbot client，之前称为Let's Encrypt Client，是推荐使用的agent工具，能够从Let's Encrypt获取、更新、撤销证书。
 
 # HSTS & DNSSEC {#hsts}
 HTTP严格传输安全(HTTP Strict Transport Security, HSTS)是IETF发布的互联网安全策略机制(RFC 6797)。HTTPS能实现安全的连接，但因为用户在输入URI时常忽略https协议部分，通过http 301响应跳转到https。中间人可以利用这个疏漏，实施SSL剥离攻击(SSL stripping attacks, 或称为protocol downgrade attacks)，拦截不安全的http连接，将后续连接修改为http来阻止安全连接。
@@ -138,7 +115,6 @@ Server Name Indication是一个TLS扩展，若一个IP为多个站点服务，�
 + [Let’s Encrypt](https://letsencrypt.org/ "Let’s Encrypt")
 + [How It Works](https://letsencrypt.org/how-it-works/ "How It Works")
 + [ACME Specification](https://github.com/letsencrypt/acme-spec "ACME Specification")
-+ [certbot](https://certbot.eff.org "certbot")
 + [HTTP严格传输安全-维基百科](https://zh.wikipedia.org/wiki/HTTP%E4%B8%A5%E6%A0%BC%E4%BC%A0%E8%BE%93%E5%AE%89%E5%85%A8 "HTTP严格传输安全")
 + [域名系统安全扩展-维基百科](https://zh.wikipedia.org/wiki/%E5%9F%9F%E5%90%8D%E7%B3%BB%E7%BB%9F%E5%AE%89%E5%85%A8%E6%89%A9%E5%B1%95 "域名系统安全扩展")
 + [Enforce Web Policy with HTTP Strict Transport Security (HSTS)](https://blog.cloudflare.com/enforce-web-policy-with-hypertext-strict-transport-security-hsts/ "Enforce Web Policy with HTTP Strict Transport Security (HSTS)")

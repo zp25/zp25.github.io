@@ -1,31 +1,108 @@
 ---
 layout: post
-title:  HTTP/2服务器
+title:  HTTP/2服务器 - certbot
 categories: 应用
 ---
 
-# 准备
-使用certbot前需确保`${www-root}/.well-known`可以被访问
+<ul>
+  <li><a href="#renew" data-trigger="menu">证书更新</a></li>
+  <li><a href="#webroot" data-trigger="menu">Webroot</a></li>
+  <li><a href="#standalone" data-trigger="menu">Standalone</a></li>
+</ul>
+
+Certbot client，之前称为Let's Encrypt Client，是推荐使用的agent工具，能够从Let's Encrypt获取、更新、撤销证书。Certbot client支持两种类型插件
+
++ Authenticators，使用`certonly`命令，完成认证过程并获取证书，证书存于`/etc/letsencrypt`。Authenticators不安装证书(配置服务器)，单次调用生成一份证书，若提供多个域名将列入单个证书中
++ Installers，使用`install`命令，配置服务器安装证书
+
+运行`certbot run`同时使用两种插件，`run`命令是certbot的默认命令。可传入不同参数调用具体插件
+
++ apache，支持Auth、Inst插件
++ webroot，支持Auth，不支持Inst，可不停机获取证书，存于webroot目录
++ nginx，支持Auth、Inst插件
++ standalone，支持Auth，不支持Inst，可在无服务器的情况下获取证书
++ manual，支持Auth，不支持Inst，手动完成认证，会给出操作建议，也允许自定义自动化认证脚本
+
+nginx示例
+
+~~~bash
+sudo apt-get update
+sudo apt-get install software-properties-common
+sudo add-apt-repository ppa:certbot/certbot
+sudo apt-get update
+sudo apt-get install python-certbot-nginx
+~~~
+安装certbot。
+
+~~~bash
+certbot --nginx
+
+certbot --nginx certonly
+~~~
+默认获取和安装证书；若希望手动配置，可传入`certonly`取消自动安装
+
+~~~bash
+certbot certificates
+~~~
+查看已有证书信息
+
+~~~bash
+certbot revoke --cert-path /etc/letsencrypt/live/CERTNAME/cert.pem
+
+certbot delete --cert-name example.com
+~~~
+使用`revoke`命令撤销证书，需传入证书(cert.pem)路径。证书撤销后可使用`delete`命令清理残留文件，注意若不执行`delete`，在下一次证书更新事件(renewal event)发生时证书依然会被更新
+
+# 证书更新 {#renew}
+运行`certbot run`总是能获取新证书，即使域名之前已经获取了证书。新旧证书文件(cert.pem)将同时存在，域名将使用新证书(软链到新证书文件)。
+
+Let's Encrypt证书有效期为90天，Let's Encrypt建议证书每60天续期一次。运行`certbot renew`将自动续期所有之前获取的将在30天内过期的证书，默认使用之前创建证书时使用的配置参数，也可重新传入参数修改，修改的参数将被记录，用于下次更新时使用。
+
+~~~bash
+# 测试续期
+certbot renew --dry-run
+
+# 续期
+cerbot renew
+~~~
+
+renew可设置钩子(hooks)
+
++ `--pre-hook, --post-hook`，每次更新证书前后执行，无论更新是否成功
++ `--renew-hook`，仅在证书成功续期后触发；certbot在更新证书成功和无需更新时都返回0，更新失败时返回1，无法通过返回判断更新是否成功
+
+示例
+
+~~~bash
+certbot renew --pre-hook "service nginx stop" --post-hook "service nginx start"
+
+certbot renew --renew-hook /path/to/renew-hook-script
+~~~
+例如需要更新standalone证书，可通过hooks在更新前关闭nginx。hooks仅在需要更新证书时触发，因此以上命令可以频繁执行而无需担心服务器频繁重启。
+
+certbot目前还不能自动完成证书续期，但可通过crontab完成。因为命令仅续期30天内将过期的证书，使用crontab是安全的，可以尝试定时每周或每天运行更新命令。`--force-renew`参数可忽略30天过期的限制，强制续期所有证书，但不适合每天运行，容易达到Let's Encrypt更新证书的次数限制。
+
+# Webroot {#webroot}
+若管理员有操作服务器资源的权限，且希望在不停机情况下获取证书，可使用Webroot插件。Webroot插件仅获取证书，需手动安装证书。
+
+使用Webroot插件需要服务器支持访问隐藏文件夹中的资源，因为Webroot通过在`${webroot-path}/.well-known/acme-challenge`目录中添加临时文件进行Let’s Encrypt CA对服务器管理域名的认证。
 
 ~~~
 location ~ /.well-known {
     allow all;
 }
 ~~~
-编辑`/etc/nginx/sites-available/default`。重新载入nginx配置。
+编辑服务器`server`块，例如`/etc/nginx/sites-available/default`中，使`/.well-known`资源可访问。
 
-记住设置防火墙，Let’s Encrypt通过http认证，打开80端口；ubuntu中certbot包使用旧名称letsencrypt，示例中命令将certbot替换即可；需要su权限
-
-# HTTPS
-使用certbot获取证书
+记住设置防火墙，Let’s Encrypt通过http认证，打开80端口；ubuntu中旧版本certbot包使用名称letsencrypt，示例中命令将certbot替换即可；需要su权限
 
 ~~~bash
 certbot certonly --webroot -w /var/www/example/ -d www.example.com -d example.com \
     -w /var/www/other -d other.example.net -d another.other.example.net
 ~~~
-示例。配置和参数
+获取证书。配置和参数
 
-+ `certonly, --webroot`，选择webroot并且仅获取证书
++ `certonly, --webroot`，选择使用webroot插件
 + `--webroot-path/-w`，服务器根路径
 + `-d`，使用指定服务器根路径的域名
 
@@ -35,69 +112,27 @@ certbot certonly --webroot -w /var/www/example/ -d www.example.com -d example.co
 
 + privkey.pem，证书中公钥对应的私钥，与解密pre-master key相关，需保密；nginx配置ssl_certificate_key时使用
 + cert.pem，服务器证书
-+ chain.pem，服务器证书外其证书，例如root CA证书和中间CA证书；nginx配置ssl_trusted_certificate时使用
++ chain.pem，服务器证书外其他证书，例如root CA证书和中间CA证书；nginx配置ssl_trusted_certificate时使用
 + fullchain.pem，合并cert.pem和chain.pem
 
 实际这些都是软链接，指向最新的一套密钥和证书。所有之前生成的密钥和证书位于`/etc/letsencrypt/keys, /etc/letsencrypt/archive`中。
 
+# Standalone {#standalone}
+无论nginx, apache插件，还是Webroot插件都要求已存在合适的服务器。Standalone插件可以在无服务器情况下获取证书，certbot会运行一个简单的服务器完成认证。
+
 证书续期使用`certbot renew`完成，可通过crontab定期更新，例如
 
-~~~
+~~~bash
 sudo crontab -e
+~~~
 
+~~~
 # crontab
-30 2 * * 1 letsencrypt renew >> /var/log/le-renew.log
-35 2 * * 1 /bin/systemctl reload nginx
+30 2 * * 1 certbot renew --pre-hook "stop server" --post-hook "start server" >> /var/log/le-renew.log
 ~~~
 每周一2:30am尝试续期证书，错误信息写入log，2:35重启nginx使用新证书
 
-# nginx配置
-Diffie-Hellman参数
-
-~~~
-sudo openssl dhparam -out /etc/ssl/certs/dhparam.pem 2048
-~~~
-[迪菲－赫尔曼密钥交换协议][d-h]可以让双方在完全没有对方任何预先信息的条件下通过不安全信道创建起一个密钥，在使用明文传输的TLS握手阶段提供安全通信。
-
-配置nginx，进入配置目录snippets，创建TLS配置的可重用块
-
-~~~
-server {
-    listen 80 default_server;
-    listen [::]:80 default_server;
-    server_name example.com www.example.com;
-    return 301 https://$server_name$request_uri;
-}
-
-server {
-    listen 443 ssl http2 default_server;
-    listen [::]:443 ssl http2 default_server;
-
-    ssl_certificate /etc/letsencrypt/live/example.com/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/example.com/privkey.pem;
-
-    ssl_stapling on;
-    ssl_stapling_verify on;
-    ssl_trusted_certificate /etc/letsencrypt/live/example.com/chain.pem;
-
-    ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
-    ssl_prefer_server_ciphers on;
-    ssl_ciphers "EECDH+AESGCM:EDH+AESGCM:AES256+EECDH:AES256+EDH";
-    add_header Strict-Transport-Security "max-age=63072000; includeSubdomains";
-    ...
-
-    ssl_dhparam /etc/ssl/certs/dhparam.pem;
-}
-~~~
-监听80端口，使用301响应跳转至https。建议证书文件使用`chain.pem, fullchain.pem`。OCSP Stapling配置3个参数。nginx安全配置参考了<https://cipherli.st/>。
-
-SSL测试可使用<https://www.ssllabs.com/ssltest/>，h2测试使用Chrome Dev Tools即可。
-
-
 # Manual
-+ [How To Set Up Nginx with HTTP/2 Support on Ubuntu 16.04](https://www.digitalocean.com/community/tutorials/how-to-set-up-nginx-with-http-2-support-on-ubuntu-16-04 "How To Set Up Nginx with HTTP/2 Support on Ubuntu 16.04")
-+ [How To Secure Nginx with Let's Encrypt on Ubuntu 16.04](https://www.digitalocean.com/community/tutorials/how-to-secure-nginx-with-let-s-encrypt-on-ubuntu-16-04 "How To Secure Nginx with Let's Encrypt on Ubuntu 16.04")
-+ [How To Install Nginx on Ubuntu 16.04](https://www.digitalocean.com/community/tutorials/how-to-install-nginx-on-ubuntu-16-04 "How To Install Nginx on Ubuntu 16.04")
-+ [SSL Server Test](https://www.ssllabs.com/ssltest/ "SSL Server Test")
-
-[d-h]: http://zh.wikipedia.org/wiki/Diffie-Hellman "迪菲－赫尔曼密钥交换"
++ [certbot](https://certbot.eff.org "certbot")
++ [Certbot User Guide](https://certbot.eff.org/docs/using.html#getting-certificates-and-choosing-plugins "Certbot User Guide")
++ [Webroot](https://certbot.eff.org/docs/using.html#webroot "Webroot")
