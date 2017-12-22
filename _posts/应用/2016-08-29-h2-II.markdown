@@ -130,7 +130,7 @@ sudo crontab -e
 # crontab
 30 2 * * 1 certbot renew --pre-hook "stop server" --post-hook "start server" >> /var/log/le-renew.log
 ~~~
-每周一2:30am尝试续期证书，错误信息写入log，2:35重启nginx使用新证书
+每周一2:30am尝试续期证书，错误信息写入log
 
 # Manual
 + [certbot](https://certbot.eff.org "certbot")
