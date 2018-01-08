@@ -83,26 +83,16 @@ blockquote {
   line-height: 1.5em;
 
   .header {
-    .anchor {
-      font-weight: bold;
-      text-decoration: none;
-    }
-
     .title {
       display: inline-block;
+      color: #a00;
       margin-bottom: 2em;
-
-      .anchor {
-        color: #a00;
-
-        &:hover {
-          color: #000;
-        }
-      }
     }
 
-    .extra {
+    .anchor {
       color: #aaa;
+      font-weight: bold;
+      text-decoration: none;
       margin-left: 1em;
 
       &:hover {
