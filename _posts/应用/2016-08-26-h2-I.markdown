@@ -31,9 +31,23 @@ Let’s Encrypt和ACME(Automated Certificate Management Environment)协议(通�
 
 agent需要完成证明方式中的一种，例如按要求将资源ed98使用`https://example.com/8303`定位来证明agent管理着`example.com`。agent还需要将公钥交给Let’s Encrypt CA。为了证明收到的公钥确实属于agent，Let’s Encrypt会生成一个随机量，要求agent使用私钥加密并返回。若Let’s Encrypt CA可以访问到资源，且利用公钥解密得到随机量，通过证明，称密钥对为'authorized key pair' for example.com，用于后续安全通信。
 
+<figure>
+  <a href="/assets/tls/howitworks_challenge.png" class="progressive replace" data-trigger="default" data-alt="How it works: Challenge" style="width: 689px; height: 164px;">
+    <img src="/assets/tls/howitworks_challenge_preview.jpg" alt="How it works: Challenge" class="progressive__img progressive__img--thumbnail">
+  </a>
+  <figcaption>引用：https://letsencrypt.org/how-it-works/</figcaption>
+</figure>
+
 完成证明后，对域名的证书操作将非常简单，agent只需将管理信息使用私钥加密后发送给Let’s Encrypt CA即可。
 
-申请证书，发送PKCS#10 CSR(Certificate Signing Request)，其中包括需要签名的公钥和使用对应私钥加密的域名等相关信息(策略类似authorized key pair的认证)，这些信息再通过authorized key pair的私钥加密保证安全。Let’s Encrypt CA收到后对两个签名进行认证，然后将公钥、域名等相关信息利用CA的私钥加密得到的证书返回给agent。
+<figure>
+  <a href="/assets/tls/howitworks_authorization.png" class="progressive replace" data-trigger="default" data-alt="How it works: Authorization" style="width: 689px; height: 380px;">
+    <img src="/assets/tls/howitworks_authorization_preview.jpg" alt="How it works: Authorization" class="progressive__img progressive__img--thumbnail">
+  </a>
+  <figcaption>引用：https://letsencrypt.org/how-it-works/</figcaption>
+</figure>
+
+申请证书，发送PKCS#10 [CSR(Certificate Signing Request)][csr]，其中包括需要签名的公钥和域名相关信息，使用CSR中公钥对应的私钥签名，这些信息再通过authorized key pair的私钥加密。Let’s Encrypt CA收到后对两个签名进行认证，然后将公钥、域名等相关信息利用CA的私钥加密得到的证书返回给agent。
 
 撤销证书过程类似，agent利用authorized key pair的私钥加密需撤销的证书后发送给Let’s Encrypt CA。证书撤销后CA将撤销信息发送到normal revocation channels(如CRLs, OCSP)，用于浏览器等更新。
 
@@ -125,3 +139,5 @@ Server Name Indication是一个TLS扩展，若一个IP为多个站点服务，�
 + [The case for “OCSP Must-Staple”](https://www.grc.com/revocation/ocsp-must-staple.htm "The case for “OCSP Must-Staple”")
 + [Application-Layer Protocol Negotiation-Wikipedia](https://en.wikipedia.org/wiki/Application-Layer_Protocol_Negotiation "Application-Layer Protocol Negotiation")
 + [Server Name Indication-Wikipedia](https://en.wikipedia.org/wiki/Server_Name_Indication "Server Name Indication")
+
+[csr]:https://tools.ietf.org/html/rfc2986 "CSR(Certificate Signing Request)"
