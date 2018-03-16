@@ -68,7 +68,7 @@ webpack还提供`require.include`函数，将一个模块打包到当前chunk，
 
 chunks分为三类
 
-+ Entry chunk，包含runtime和一些模块；若chunck包含模块0，runtime运行这个模块，否则等待包含模块0的chunk加载后运行
++ Entry chunk，包含runtime和一些模块；若chunk包含模块0，runtime运行这个模块，否则等待包含模块0的chunk加载后运行
 + Normal chunk，不包含runtime，chunk依据不同加载策略有不同结构，例如jsonp将所有模块包裹在jsonp回调函数中；所有模块都分配数字ID
 + Initial chunk，属于normal chunk，但权重更高，因为加载时间计入应用的初始化加载时间(如Entry chunk)；可通过CommonsChunkPlugin创建
 
