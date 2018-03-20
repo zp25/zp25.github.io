@@ -12,5 +12,6 @@ collections:
 
 # Custom
 name: Blog
+title: Blog
 description: zp25's blog
 url: https://blog.zp25.ninja

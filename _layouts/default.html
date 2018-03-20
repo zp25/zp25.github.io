@@ -8,35 +8,37 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="white">
   <meta name="format-detection" content="telephone=no">
   <meta name="format-detection" content="email=no">
+  <!-- Chrome, Firefox OS and Opera -->
+  <meta name="theme-color" content="#70af1a">
   <title>{{ page.title }}</title>
   <!-- app icon -->
-  <link rel="apple-touch-icon" sizes="120x120" href="/assets/icon@iphone.png">
-  <link rel="apple-touch-icon" sizes="180x180" href="/assets/icon@iphone-plus.png">
-  <link rel="apple-touch-icon" sizes="152x152" href="/assets/icon@ipad.png">
-  <link rel="apple-touch-icon" sizes="167x167" href="/assets/icon@ipad-pro.png">
+  <link rel="apple-touch-icon" sizes="120x120" href="assets/icon@iphone.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/icon@iphone-plus.png">
+  <link rel="apple-touch-icon" sizes="152x152" href="assets/icon@ipad.png">
+  <link rel="apple-touch-icon" sizes="167x167" href="assets/icon@ipad-pro.png">
   <!-- favicon -->
-  <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="assets/favicon.png">
   <!-- manifest -->
-  <link rel="manifest" href="/manifest.json">
+  <link rel="manifest" href="manifest.json">
   <!-- startup image -->
   <!-- <link rel="apple-touch-startup-image" media="(device-width: 375px) and (-webkit-device-pixel-ratio: 2)" href="/assets/startup@iphone.png"> -->
   <!-- Custom CSS -->
-  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="css/main.css">
   <!-- RSS Feed -->
   <link rel="alternate" type="application/atom+xml" href="feed.xml" title="feed">
   <!-- canonical -->
   <link rel="canonical" href="{{ site.url }}{{ page.url }}">
   <!-- scripts -->
-  <script defer src="/scripts/polyfill.min.js"></script>
-  <script defer src="/scripts/main.js"></script>
+  <script defer src="scripts/polyfill.min.js"></script>
+  <script defer src="scripts/main.js"></script>
 </head>
 
 <body>
   <div class="site">
     <header class="header">
       <h1 class="title">{{ site.name }}</h1>
-      <a class="anchor" href="/index.html" data-trigger="navigator">home</a>
-      <a class="anchor" href="/category.html" data-trigger="navigator">category</a>
+      <a class="anchor" href="index.html" data-trigger="navigator">home</a>
+      <a class="anchor" href="category.html" data-trigger="navigator">category</a>
     </header>
 
     {{ content }}
