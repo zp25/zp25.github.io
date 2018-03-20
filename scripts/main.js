@@ -78,63 +78,6 @@ const sw = () => {
 }
 
 /**
- * 事件分发
- */
-const dispatch = handlers => (e) => {
-  const trigger = e.target.dataset.trigger;
-
-  if (trigger && {}.hasOwnProperty.call(handlers, trigger)) {
-    handlers[trigger](e);
-  }
-};
-
-/**
- * 事件处理
- */
-const createHandlers = () => {
-  /**
-   * 导航，新开链接
-   * @param {Event} e - 事件对象
-   */
-  const navigator = (e) => {
-    e.preventDefault();
-
-    location.href = e.target.href;
-  };
-
-  /**
-   * 页内导航
-   * @param {Event} e - 事件对象
-   */
-  const menu = (e) => {
-    e.preventDefault();
-
-    const hash = e.target.hash;
-    const target = document.querySelector(hash);
-
-    if (target) {
-      // 模拟hash跳转
-      history.pushState({ hash }, '', hash);
-      document.querySelector(hash).scrollIntoView();
-    }
-  };
-
-  /**
-   * 阻止默认动作
-   * @param {Event} e - 事件对象
-   */
-  const prevent = (e) => {
-    e.preventDefault();
-  };
-
-  return {
-    navigator,
-    menu,
-    prevent,
-  };
-};
-
-/**
  * 元素是否在y轴可视范围内
  * @param {Node} item - 需要检测是否在可视范围的元素
  * @return {boolean}
@@ -215,16 +158,12 @@ const imageLoader = (items, state) => {
 };
 
 document.addEventListener('DOMContentLoaded', () => {
-  const handlers = createHandlers();
   const state = {
     timer: NaN,
   };
 
   // 启动service worker
   sw();
-
-  // 捕获全局点击事件
-  document.body.addEventListener('click', dispatch(handlers), false);
 
   // live HTMLCollection
   const items = document.getElementsByClassName('progressive replace');
