@@ -1,6 +1,6 @@
-const CACHE_VERSION = 0.7;
+const CACHE_VERSION = 'v0.8';
 const CURRENT_CACHES = {
-  offline: `offline-v${CACHE_VERSION}`,
+  offline: `offline-${CACHE_VERSION}`,
 };
 
 const polyfill = '/scripts/polyfill.min.js';
@@ -34,52 +34,55 @@ self.addEventListener('activate', (event) => {
   );
 });
 
+/**
+ * fetch并存储到cache
+ * @param {Request} req - Request对象
+ * @return {Promise}
+ * @throws {TypeError} If network error
+ * @throws {Error} If res.ok === false
+ */
+const fetchAndCache = req => fetch(req).then((res) => {
+  if (!res.ok) {
+    throw new Error(`${res.status} ${res.statusText}`);
+  }
+
+  return caches.open(CURRENT_CACHES.offline).then((cache) => {
+    cache.put(req, res.clone());
+
+    return res;
+  });
+});
+
 // 代理
 self.addEventListener('fetch', (event) => {
   if (event.request.mode === 'navigate') {
-    // HTML，总是请求资源并缓存
+    // HTML，Network falling back to the cache
     event.respondWith(
-      fetch(event.request).then((res) => {
-        if (!res.ok) {
-          throw new Error(`${res.status} ${res.statusText}`);
-        }
-
-        return caches.open(CURRENT_CACHES.offline).then((cache) => {
-          cache.put(event.request, res.clone());
+      fetchAndCache(event.request).catch(() => (
+        caches.match(event.request).then((res) => {
+          if (!res) {
+            return caches.match(pageNotFound);
+          }
 
           return res;
         })
-      }).catch(() => caches.match(event.request).then((res) => {
-        if (!res) {
-          return caches.match(pageNotFound);
-        }
-
-        return res;
-      }))
+      ))
     );
   } else {
-    // 其它资源，先匹配缓存，未匹配请求资源，无资源以404响应
+    // 其它资源，Cache falling back to the network
     event.respondWith(
       caches.match(event.request).then((asset) => {
         if (asset) {
           return asset;
         }
 
-        return fetch(event.request).then((res) => {
-          if (!res.ok) {
-            throw new Error(`${res.status} ${res.statusText}`);
-          }
-
-          return caches.open(CURRENT_CACHES.offline).then((cache) => {
-            cache.put(event.request, res.clone());
-
-            return res;
-          });
-        }).catch(() => new Response('Page Not Found', {
+        return fetchAndCache(event.request);
+      }).catch(() => (
+        new Response('Page Not Found', {
           status: 404,
           statusText: 'Not Found',
-        }));
-      })
+        })
+      ))
     );
   }
 });

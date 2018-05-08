@@ -53,7 +53,7 @@ const sw = () => {
 
   const serviceWorkerContainer = navigator.serviceWorker;
 
-  serviceWorkerContainer.register('/sw.js', { scope: '/' }).then((reg) => {
+  serviceWorkerContainer.register('/sw.js').then((reg) => {
     let serviceWorker;
 
     if (reg.installing) {
