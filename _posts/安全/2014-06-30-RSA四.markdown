@@ -186,6 +186,7 @@ gpg --verify demo.txt.sig
 + [Gnu隐私卫士(GnuPG)袖珍HOWTO(中文版)](https://www.gnupg.org/howtos/zh/index.html "Gnu隐私卫士(GnuPG)袖珍HOWTO(中文版)")
 + [GnuPrivacyGuardHowto](https://help.ubuntu.com/community/GnuPrivacyGuardHowto "GnuPrivacyGuardHowto")
 + [GPG入门教程](http://www.ruanyifeng.com/blog/2013/07/gpg.html "GPG入门教程")
++ [How to verify signatures for packages](https://www.torproject.org/docs/verifying-signatures.html.en "How to verify signatures for packages")
 
 [pgp]: http://zh.wikipedia.org/wiki/PGP "PGP"
 [dsa]: http://en.wikipedia.org/wiki/Digital_Signature_Algorithm "Digital Signature Algorithm"
