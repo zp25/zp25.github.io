@@ -7,8 +7,6 @@ categories: 安全
 # 公开密钥加密
 公开密钥加密，也称为非对称(密钥)加密，是指一对加密密钥与解密密钥，这两个密钥数学相关。用某用户密钥加密后所得的信息，只能用该用户的解密密钥才能解密。如果知道了其中一个，并不能计算出另外一个。因此如果公开了一对密钥中的一个，并不会危害到另外一个的秘密性质。称公开的密钥为公钥；不公开的密钥为私钥。
 
-如果加密密钥是公开的，则称为公钥加密算法，使用最广泛的是RSA算法；若解密密钥是公开的，则称为私钥加密算法，应用如数字证书。
-
 # RSA
 1977年在麻省理工学院工作的三位数学家Ron Rivest、Adi Shamir、Leonard Adleman一起提出了一种算法，以他们三人姓氏开头字母组成名称，即RSA算法。RSA加密算法是一种非对称加密算法，在公开密钥加密和电子商业中广泛使用。
 
@@ -139,6 +137,7 @@ TLS/SSL握手阶段，客户端通过ClientHello发送支持的Cipher suite列�
 + [RSA算法原理（二）](http://www.ruanyifeng.com/blog/2013/07/rsa_algorithm_part_two.html "RSA算法原理（二）")
 + [SSL/TLS协议运行机制的概述](http://www.ruanyifeng.com/blog/2014/02/ssl_tls.html "SSL/TLS协议运行机制的概述")
 + [Cipher suite-Wikipedia](https://en.wikipedia.org/wiki/Cipher_suite "Cipher suite")
++ [RSA的公钥和私钥到底哪个才是用来加密和哪个用来解密？](https://www.zhihu.com/question/25912483 "RSA的公钥和私钥到底哪个才是用来加密和哪个用来解密？")
 
 [EulerF]: http://zh.wikipedia.org/wiki/%E6%AC%A7%E6%8B%89%E5%87%BD%E6%95%B0 "欧拉函数"
 [num]: http://zh.wikipedia.org/wiki/%E6%95%B0%E8%AE%BA "数论"
