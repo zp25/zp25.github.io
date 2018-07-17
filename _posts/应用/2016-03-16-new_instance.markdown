@@ -40,7 +40,7 @@ chmod 600 .ssh/authorized_keys
 # 退出新用户返回root
 exit
 ~~~
-将公钥粘帖到文件并修改权限，然后返回root
+将公钥粘帖到文件并修改权限，然后返回root；也可以在本机使用`ssh-copy-id`命令复制
 
 ~~~bash
 vim /etc/ssh/sshd_config
@@ -133,6 +133,6 @@ sudo dpkg-reconfigure ca-certificates
 
 
 # Manual
-+ [Initial Server Setup with Ubuntu 14.04](https://www.digitalocean.com/community/tutorials/initial-server-setup-with-ubuntu-14-04 "Initial Server Setup with Ubuntu 14.04")
-+ [Initial Server Setup with Ubuntu 16.04](https://www.digitalocean.com/community/tutorials/initial-server-setup-with-ubuntu-16-04 "Initial Server Setup with Ubuntu 16.04")
++ [Initial Server Setup with Ubuntu 18.04](https://www.digitalocean.com/community/tutorials/initial-server-setup-with-ubuntu-18-04 "Initial Server Setup with Ubuntu 18.04")
 + [How To Use SSH Keys with DigitalOcean Droplets](https://www.digitalocean.com/community/tutorials/how-to-use-ssh-keys-with-digitalocean-droplets "How To Use SSH Keys with DigitalOcean Droplets")
++ [SSH authorization key for multiple systems](https://superuser.com/questions/400190/ssh-authorization-key-for-multiple-systems "SSH authorization key for multiple systems")
