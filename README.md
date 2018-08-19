@@ -1,5 +1,6 @@
-zp25.github.io
-==============
+# zp25.github.io
+
+[![Build Status](https://travis-ci.org/zp25/zp25.github.io.svg?branch=master)](https://travis-ci.org/zp25/zp25.github.io)
 
 zp25's blog
 
