@@ -40,7 +40,7 @@ chmod 600 .ssh/authorized_keys
 # 退出新用户返回root
 exit
 ~~~
-将公钥粘帖到文件并修改权限，然后返回root；也可以在本机使用`ssh-copy-id`命令复制
+将公钥粘帖到文件并修改权限，然后返回root；也可以在本机使用`ssh-copy-id newuser@server`命令复制
 
 ~~~bash
 vim /etc/ssh/sshd_config
