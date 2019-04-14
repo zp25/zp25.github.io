@@ -21,6 +21,7 @@ Certbot client，之前称为Let's Encrypt Client，是推荐使用的agent工�
 + webroot，支持Auth，不支持Inst，可不停机获取证书，存于webroot目录
 + nginx，支持Auth、Inst插件
 + standalone，支持Auth，不支持Inst，可在无服务器的情况下获取证书
++ DNS plugins，支持Auth，不支持Inst，DNS challenge，获取wildcard certificates唯一方式
 + manual，支持Auth，不支持Inst，手动完成认证，会给出操作建议，也允许自定义自动化认证脚本
 
 nginx示例
