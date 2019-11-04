@@ -32,7 +32,7 @@ server {
     resolver 8.8.8.8 8.8.4.4 valid=300s;
     resolver_timeout 5s;
 
-    ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
+    ssl_protocols TLSv1.2 TLSv1.3;
     ssl_prefer_server_ciphers on;
     ssl_ciphers "EECDH+AESGCM:EDH+AESGCM:AES256+EECDH:AES256+EDH";
 
@@ -52,7 +52,7 @@ server {
 ~~~
 监听80端口，使用301响应跳转至https。证书使用fullchain.pem，因为可能需要中间CA的证书。浏览器会存储接收到的安全的中间证书，用于以后的认证。
 
-+ `ssl_protocols TLSv1 TLSv1.1 TLSv1.2;`，nginx默认已设置，可省略
++ `ssl_protocols TLSv1.2 TLSv1.3;`，[Deprecating TLSv1.0 and TLSv1.1][tls1.1]
 + `ssl_ciphers HIGH:!aNULL:!MD5;`，默认的Cipher suite
 + `ssl_ecdh_curve auto;`，Specifies a curve for ECDHE ciphers
   + `auto`，默认，OpenSSL 1.0.2使用其内建值，低版本使用prime256v1
@@ -69,9 +69,10 @@ sudo openssl dhparam -out /etc/ssl/certs/dhparam.pem 2048
 配置nginx，进入配置目录snippets，创建TLS配置的可重用块
 
 # 性能优化
+
 TLS握手是CPU运算的集中阶段，减少握手能提高性能，有两种方式：长连接、Session Resumption。其中TLS会话恢复有两种策略
 
-Session Identifier，SSL2.0引入，server将握手协商的信息缓存并分配一个32bytes的Session ID，通过SeverHello发送给客户端。再次握手时客户端在ClientHello信息中添加Session ID，告诉服务器还记得之前协商的Cipher suite和密钥，若服务器能通过Session ID取出纪录，将无需重新计算密钥，并省去一个RTT。但因为服务器需要为每个打开的TLS链接缓存协商数据，可能消耗过多资源，也增加了管理复杂度。并且Session Identifier存储在服务器，分布式系统无法共用。
+Session Identifier，SSL2.0引入，server将握手协商的信息缓存并分配一个Session ID，通过SeverHello发送给客户端。再次握手时客户端在ClientHello信息中添加Session ID，告诉服务器还记得之前协商的Cipher suite和密钥，若服务器能通过Session ID取出纪录，将无需重新计算密钥，并省去一个RTT。但因为服务器需要为每个打开的TLS链接缓存协商数据，可能消耗过多资源，也增加了管理复杂度。并且Session Identifier存储在服务器，分布式系统无法共用。
 
 Session Ticket，在TLS握手的最后阶段，服务器使用密钥将会话数据加密后发送给客户端，服务器无需再存储这些数据，客户端存储了协商数据和加密的会话纪录。再次握手时，客户端将会话纪录包含在SessionTicket扩展中，通过ClientHello发送给服务器。若服务器能解密得到会话数据，可重用。
 
@@ -116,8 +117,8 @@ TLS SNI support enabled
 ~~~
 查看是否支持
 
-
 # Manual
+
 + [Configuring HTTPS servers](http://nginx.org/en/docs/http/configuring_https_servers.html "Configuring HTTPS servers")
 + [Cipherli.st: Strong Ciphers for Apache, nginx and Lighttpd](https://cipherli.st/ "Cipherli.st: Strong Ciphers for Apache, nginx and Lighttpd")
 + [How To Set Up Nginx with HTTP/2 Support on Ubuntu 16.04](https://www.digitalocean.com/community/tutorials/how-to-set-up-nginx-with-http-2-support-on-ubuntu-16-04 "How To Set Up Nginx with HTTP/2 Support on Ubuntu 16.04")
@@ -125,4 +126,5 @@ TLS SNI support enabled
 + [How To Install Nginx on Ubuntu 16.04](https://www.digitalocean.com/community/tutorials/how-to-install-nginx-on-ubuntu-16-04 "How To Install Nginx on Ubuntu 16.04")
 + [SSL Server Test](https://www.ssllabs.com/ssltest/ "SSL Server Test")
 
+[tls1.1]: https://tools.ietf.org/id/draft-moriarty-tls-oldversions-diediedie-00.html "Deprecating TLSv1.0 and TLSv1.1"
 [d-h]: http://zh.wikipedia.org/wiki/Diffie-Hellman "迪菲－赫尔曼密钥交换"

@@ -55,6 +55,7 @@ certbot delete --cert-name example.com
 使用`revoke`命令撤销证书，需传入证书(cert.pem)路径。证书撤销后可使用`delete`命令清理残留文件，注意若不执行`delete`，在下一次证书更新事件(renewal event)发生时证书依然会被更新
 
 # 证书更新 {#renew}
+
 运行`certbot run`总是能获取新证书，即使域名之前已经获取了证书。新旧证书文件(cert.pem)将同时存在，域名将使用新证书(软链到新证书文件)。
 
 Let's Encrypt证书有效期为90天，Let's Encrypt建议证书每60天续期一次。运行`certbot renew`将自动续期所有之前获取的将在30天内过期的证书，默认使用之前创建证书时使用的配置参数，也可重新传入参数修改，修改的参数将被记录，用于下次更新时使用。
@@ -70,7 +71,7 @@ cerbot renew
 renew可设置钩子(hooks)
 
 + `--pre-hook, --post-hook`，每次更新证书前后执行，无论更新是否成功
-+ `--renew-hook`，仅在证书成功续期后触发；certbot在更新证书成功和无需更新时都返回0，更新失败时返回1，无法通过返回判断更新是否成功
++ `--deploy-hook`，仅在证书成功续期后触发；certbot在更新证书成功和无需更新时都返回0，更新失败时返回1，无法通过返回判断更新是否成功，若仅希望更新成功时执行某些任务，可使用此hook
 
 示例
 
@@ -79,6 +80,7 @@ certbot renew --pre-hook "service nginx stop" --post-hook "service nginx start"
 
 certbot renew --renew-hook /path/to/renew-hook-script
 ~~~
+
 例如需要更新standalone证书，可通过hooks在更新前关闭nginx。hooks仅在需要更新证书时触发，因此以上命令可以频繁执行而无需担心服务器频繁重启。
 
 certbot目前还不能自动完成证书续期，但可通过crontab完成。因为命令仅续期30天内将过期的证书，使用crontab是安全的，可以尝试定时每周或每天运行更新命令。`--force-renew`参数可忽略30天过期的限制，强制续期所有证书，但不适合每天运行，容易达到Let's Encrypt更新证书的次数限制。
