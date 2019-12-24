@@ -96,10 +96,15 @@ gpg --send-keys --keyserver keyserver.ubuntu.com $GPGKEY
 也可通过浏览器直接上传之前导出的公钥。由于任何人都可以向公钥服务器上传公钥，因此通常将公钥指纹(fingerprint)公布，方便使用者验证
 
 # 导入公钥
+
 可通过公钥服务器查找任何一份公钥
 
 ~~~bash
+# 查找
 gpg --keyserver keyserver.ubuntu.com --search-keys $GPGKEY
+
+# 从服务器导入公钥
+gpg --keyserver keyserver.ubuntu.com --recv $GPGKEY
 ~~~
 
 要使用别人的公钥，需先导入至密钥数据库。首先获取对方的公钥，然后运行
@@ -107,9 +112,11 @@ gpg --keyserver keyserver.ubuntu.com --search-keys $GPGKEY
 ~~~bash
 gpg --import public-key.txt
 ~~~
+
 默认从stdin读入
 
 # 密钥管理
+
 进入界面后可输入`help`查看可操作内容。常用命令
 
 ~~~
