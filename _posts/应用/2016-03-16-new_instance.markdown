@@ -57,7 +57,13 @@ PasswordAuthentication no
 # 与证书登录相关，默认已设置
 PubkeyAuthentication yes
 ChallengeResponseAuthentication no
+
+# server每60s向client发送null packet，用于维持连接；client可设置ServerAliveInterval
+ClientAliveInterval 60
+# 若连续3次null packet都未收到client响应，将断开连接；client可设置ServerAliveCountMax
+ClientAliveCountMax 3
 ~~~
+
 可适当修改SSH配置，如选择阻止root登录
 
 ~~~bash
