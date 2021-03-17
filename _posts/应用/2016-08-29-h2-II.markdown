@@ -17,48 +17,52 @@ Certbot client，之前称为Let's Encrypt Client，是推荐使用的agent工�
 
 运行`certbot run`同时使用两种插件，`run`命令是certbot的默认命令。可传入不同参数调用具体插件
 
-+ apache，支持Auth、Inst插件
-+ webroot，支持Auth，不支持Inst，可不停机获取证书，存于webroot目录
-+ nginx，支持Auth、Inst插件
-+ standalone，支持Auth，不支持Inst，可在无服务器的情况下获取证书
-+ DNS plugins，支持Auth，不支持Inst，DNS challenge，获取wildcard certificates唯一方式
-+ manual，支持Auth，不支持Inst，手动完成认证，会给出操作建议，也允许自定义自动化认证脚本
++ apache，http-01，支持Auth、Inst插件
++ nginx，http-01，支持Auth、Inst插件
++ webroot，http-01，支持Auth，不支持Inst，可不停机获取证书，存于webroot目录
++ standalone，http-01，支持Auth，不支持Inst，可在无服务器的情况下获取证书
++ DNS plugins，dns-01，支持Auth，不支持Inst，DNS challenge，通过修改DNS验证拥有域名管理权，获取wildcard certificates唯一方式；certbot默认不安装DNS plugins，需自行安装，例如
+  + certbot-dns-cloudflare
+  + certbot-dns-digitalocean
+  + certbot-dns-google
++ manual，http-01和dns-01，支持Auth，不支持Inst，手动完成认证，会给出操作建议，也允许自定义自动化认证脚本
 
-nginx示例
+http-01(80), dns-01(53)是验证对域名管理权的方式(ACME protocol challenges)
 
 ~~~bash
-sudo apt-get update
-sudo apt-get install software-properties-common
-sudo add-apt-repository ppa:certbot/certbot
-sudo apt-get update
-sudo apt-get install python-certbot-nginx
+sudo snap install certbot
 ~~~
-安装certbot。
+
+安装certbot
 
 ~~~bash
 certbot --nginx
-
 certbot --nginx certonly
+
+certbot --nginx rollback
 ~~~
-默认获取和安装证书；若希望手动配置，可传入`certonly`取消自动安装
+
+默认获取和安装证书；若希望手动配置，可传入`certonly`取消自动安装；可撤销对nginx配置的修改
 
 ~~~bash
 certbot certificates
 ~~~
-查看已有证书信息
+
+查看已有证书信息，详情中`Certificate Name`可用于传入`--cert-name`选项
 
 ~~~bash
 certbot revoke --cert-path /etc/letsencrypt/live/CERTNAME/cert.pem
 
 certbot delete --cert-name example.com
 ~~~
+
 使用`revoke`命令撤销证书，需传入证书(cert.pem)路径。证书撤销后可使用`delete`命令清理残留文件，注意若不执行`delete`，在下一次证书更新事件(renewal event)发生时证书依然会被更新
 
 # 证书更新 {#renew}
 
 运行`certbot run`总是能获取新证书，即使域名之前已经获取了证书。新旧证书文件(cert.pem)将同时存在，域名将使用新证书(软链到新证书文件)。
 
-Let's Encrypt证书有效期为90天，Let's Encrypt建议证书每60天续期一次。运行`certbot renew`将自动续期所有之前获取的将在30天内过期的证书，默认使用之前创建证书时使用的配置参数，也可重新传入参数修改，修改的参数将被记录，用于下次更新时使用。
+Let's Encrypt证书有效期为90天，并建议证书每60天续期一次。运行`certbot renew`将自动续期所有之前获取的将在30天内过期的证书，默认使用之前创建证书时使用的配置参数，也可重新传入参数修改，修改的参数将被记录，用于下次更新时使用。
 
 ~~~bash
 # 测试续期
@@ -83,9 +87,10 @@ certbot renew --renew-hook /path/to/renew-hook-script
 
 例如需要更新standalone证书，可通过hooks在更新前关闭nginx。hooks仅在需要更新证书时触发，因此以上命令可以频繁执行而无需担心服务器频繁重启。
 
-certbot目前还不能自动完成证书续期，但可通过crontab完成。因为命令仅续期30天内将过期的证书，使用crontab是安全的，可以尝试定时每周或每天运行更新命令。`--force-renew`参数可忽略30天过期的限制，强制续期所有证书，但不适合每天运行，容易达到Let's Encrypt更新证书的次数限制。
+部分通过Linux包管理器安装的certbot提供自动续期功能，若不知道是否提供可查看crontab(通常在`/etc/crontab/, /etc/cron.*/*`中)或systemd timers(`systemctl list-timers`)。若不支持可添加crontab完成。因为命令仅续期30天内将过期的证书，使用crontab是安全的，可以尝试定时每周或每天运行更新命令。`--force-renew`参数可忽略30天过期的限制，强制续期所有证书，但不适合每天运行，容易达到Let's Encrypt更新证书的次数限制。
 
 # Webroot {#webroot}
+
 若管理员有操作服务器资源的权限，且希望在不停机情况下获取证书，可使用Webroot插件。Webroot插件仅获取证书，需手动安装证书。
 
 使用Webroot插件需要服务器支持访问隐藏文件夹中的资源，因为Webroot通过在`${webroot-path}/.well-known/acme-challenge`目录中添加临时文件进行Let’s Encrypt CA对服务器管理域名的认证。
@@ -95,14 +100,16 @@ location ~ /.well-known {
     allow all;
 }
 ~~~
-编辑服务器`server`块，例如`/etc/nginx/sites-available/default`中，使`/.well-known`资源可访问。
 
-记住设置防火墙，Let’s Encrypt通过http认证，打开80端口；ubuntu中旧版本certbot包使用名称letsencrypt，示例中命令将certbot替换即可；需要su权限
+编辑服务器，使`/.well-known`资源可访问。
+
+记住设置防火墙，webroot插件通过http-01认证，打开80端口
 
 ~~~bash
 certbot certonly --webroot -w /var/www/example/ -d www.example.com -d example.com \
     -w /var/www/other -d other.example.net -d another.other.example.net
 ~~~
+
 获取证书。配置和参数
 
 + `certonly, --webroot`，选择使用webroot插件
@@ -111,7 +118,7 @@ certbot certonly --webroot -w /var/www/example/ -d www.example.com -d example.co
 
 例中提供两个根路径，分别对应两个域名。首次使用时Let's Encrypt会要求提供email，用于接收各种提醒。完成引导程序会收到证书签发成功信息，其中包括证书存放路径和过期时间。
 
-最新生成的密钥和签发的证书都位于`/etc/letsencrypt/live/$domain`中，配置服务器时指向这些文件即可。包括
+最新生成的密钥和签发的证书都位于`/etc/letsencrypt/live/$domain`中，包括
 
 + privkey.pem，证书中公钥对应的私钥，与解密pre-master key相关，需保密；nginx配置ssl_certificate_key时使用
 + cert.pem，服务器证书
@@ -121,21 +128,17 @@ certbot certonly --webroot -w /var/www/example/ -d www.example.com -d example.co
 实际这些都是软链接，指向最新的一套密钥和证书。所有之前生成的密钥和证书位于`/etc/letsencrypt/keys, /etc/letsencrypt/archive`中。
 
 # Standalone {#standalone}
-无论nginx, apache插件，还是Webroot插件都要求已存在合适的服务器。Standalone插件可以在无服务器情况下获取证书，certbot会运行一个简单的服务器完成认证。
 
-证书续期使用`certbot renew`完成，可通过crontab定期更新，例如
+无论nginx, apache插件，还是Webroot插件都要求已存在合适的服务器。Standalone插件可以在无服务器情况下获取证书，certbot会运行一个简单的服务器完成认证。通过`certonly, --standalone`选择使用Standalone插件
 
 ~~~bash
-sudo crontab -e
+certbot certonly --standalone --key-type ecdsa -d example.com -d www.example.com
 ~~~
 
-~~~
-# crontab
-30 2 * * 1 certbot renew --pre-hook "stop server" --post-hook "start server" >> /var/log/le-renew.log
-~~~
-每周一2:30am尝试续期证书，错误信息写入log
+示例，生成ECDSA证书
 
 # Manual
+
 + [certbot](https://certbot.eff.org "certbot")
 + [Certbot User Guide](https://certbot.eff.org/docs/using.html#getting-certificates-and-choosing-plugins "Certbot User Guide")
 + [Webroot](https://certbot.eff.org/docs/using.html#webroot "Webroot")
