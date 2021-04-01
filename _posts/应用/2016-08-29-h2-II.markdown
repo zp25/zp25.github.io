@@ -30,7 +30,7 @@ Certbot client，之前称为Let's Encrypt Client，是推荐使用的agent工�
 http-01(80), dns-01(53)是验证对域名管理权的方式(ACME protocol challenges)
 
 ~~~bash
-sudo snap install certbot
+sudo snap install certbot --classic
 ~~~
 
 安装certbot
