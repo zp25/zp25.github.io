@@ -146,6 +146,7 @@ php的`rawurlencode`遵循[RFC3986][rfc3986]规则，javascript的`encodeURI, en
 + [urllib.urlencode](https://docs.python.org/2/library/urllib.html#urllib.urlencode "urllib.urlencode")
 + [urllib.parse.urlencode](https://docs.python.org/3/library/urllib.parse.html#urllib.parse.urlencode "urllib.parse.urlencode")
 + [encodeURIComponent()](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/encodeURIComponent "encodeURIComponent()")
++ [Encoding data for POST requests](https://jakearchibald.com/2021/encoding-data-for-post-requests/ "Encoding data for POST requests")
 
 [rfc3986]:http://www.ietf.org/rfc/rfc3986.txt "RFC3986"
 [rfc1738]:https://www.ietf.org/rfc/rfc1738.txt "RFC1738"
