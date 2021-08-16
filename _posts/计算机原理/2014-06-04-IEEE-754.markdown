@@ -63,6 +63,7 @@ binary64，双精度浮点数，对应c中的double，q为11位(范围-1022～10
 + [IEEE floating point-wikipedia](http://en.wikipedia.org/wiki/IEEE_floating_point "IEEE floating point")
 + [IEEE 854-1987-wikipedia](http://en.wikipedia.org/wiki/IEEE_854-1987 "IEEE 854-1987")
 + [浮点数的二进制表示](http://www.ruanyifeng.com/blog/2010/06/ieee_floating-point_representation.html "浮点数的二进制表示")
++ [Binary representation of floating-point numbers](https://github.com/trekhleb/javascript-algorithms/tree/master/src/algorithms/math/binary-floating-point "Binary representation of floating-point numbers")
 
 [ieee]: http://zh.wikipedia.org/wiki/%E7%94%B5%E6%B0%94%E7%94%B5%E5%AD%90%E5%B7%A5%E7%A8%8B%E5%B8%88%E5%AD%A6%E4%BC%9A "电气电子工程师学会"
 [fpu]: http://zh.wikipedia.org/wiki/%E6%B5%AE%E7%82%B9%E8%BF%90%E7%AE%97%E5%99%A8 "浮点运算器"
