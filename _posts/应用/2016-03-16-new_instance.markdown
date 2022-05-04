@@ -66,10 +66,19 @@ PasswordAuthentication no
 PubkeyAuthentication yes
 ChallengeResponseAuthentication no
 
+# 完成验证允许的时长，可控制存在的未验证连接数
+LoginGraceTime 30
+MaxAuthTries 3
+
 # server每60s向client发送null packet，用于维持连接；client可设置ServerAliveInterval
 ClientAliveInterval 60
 # 若连续3次null packet都未收到client响应，将断开连接；client可设置ServerAliveCountMax
 ClientAliveCountMax 3
+
+# 可以选择是否允许X11 forwarding
+X11Forwarding no
+# 可以选择是否显示motd(message of the day)
+PrintMotd no
 ~~~
 
 可适当修改SSH配置，如选择阻止root登录
@@ -154,6 +163,12 @@ sudo dpkg-reconfigure ca-certificates
 
 选择系统信任的证书，例如取消对CNNIC_ROOT.crt的信任
 
+~~~bash
+sudo apt-get install fail2ban
+~~~
+
+安装Fai2Ban，开箱即用
+
 # Manual
 
 + [Initial Server Setup with Ubuntu 18.04](https://www.digitalocean.com/community/tutorials/initial-server-setup-with-ubuntu-18-04 "Initial Server Setup with Ubuntu 18.04")
@@ -161,3 +176,6 @@ sudo dpkg-reconfigure ca-certificates
 + [SSH authorization key for multiple systems](https://superuser.com/questions/400190/ssh-authorization-key-for-multiple-systems "SSH authorization key for multiple systems")
 + [生成新 SSH 密钥并添加到 ssh-agent](https://docs.github.com/cn/github/authenticating-to-github/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent "生成新 SSH 密钥并添加到 ssh-agent")
 + [ssh-keygen - Generate a New SSH Key](https://www.ssh.com/ssh/keygen/ "ssh-keygen - Generate a New SSH Key")
++ [Who’s Attacking My Server?](https://bastian.rieck.me/blog/posts/2022/server/ "Who’s Attacking My Server?")
++ [My First 5 Minutes On A Server; Or, Essential Security for Linux Servers](https://sollove.com/2013/03/03/my-first-5-minutes-on-a-server-or-essential-security-for-linux-servers/ "My First 5 Minutes On A Server; Or, Essential Security for Linux Servers")
+
